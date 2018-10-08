@@ -1,23 +1,16 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Tue Aug 21 10:08:08 2018
 
 @author: Kyunghan
 """
-
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Apr 19 21:56:25 2018
-
-@author: Kyunghan
-"""
-
 from setuptools import setup, find_packages, Extension
 
 setup(
     name="pysim",
     packages=find_packages(),
-    version="1.0",
+    version="1.0.0",
     description="python simulation environment",
     author='Kyunghan Min',
     author_email='kyunghah.min@gmail.com',

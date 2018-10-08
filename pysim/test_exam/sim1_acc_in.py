@@ -28,10 +28,9 @@ if __name__== "__main__":
     # set initial path
     base_dir = os.path.abspath('..\..')
     print('Base directory: ', base_dir)
-    os.chdir(base_dir)
-    import pysim
+    os.chdir(base_dir)    
     from pysim.models.model_vehicle import Mod_Veh, Mod_Body
-    from pysim.models.model_powertrain import Mod_Power
+    from pysim.models.model_power import Mod_Power
 ##    from models.model_maneuver import Mod_Behavior, Mod_Driver
 ##    from models.model_environment import Mod_Env
     from pysim.sub_util.sub_type_def import type_DataLog
@@ -70,7 +69,7 @@ if __name__== "__main__":
 
     #%% 3. Run simulation
     # Set logging data
-    sim1 = type_DataLog(['Veh_Vel','Pos_X','Pos_Y','Acc_Set','Brk_Set'])
+    sim1 = type_DataLog(['Veh_Vel','Pos_X','Pos_Y','Acc_Set','Brk_Set','SOC'])
     w_veh_deb = []
     for sim_step in range(len(sim_time_range)):
         # Arrange vehicle input
@@ -79,11 +78,12 @@ if __name__== "__main__":
         # Vehicle model sim
         [veh_vel, the_wheel] = kona_vehicle.Veh_driven(u_acc = u_acc_in, u_brake = u_brk_in)
         [pos_x, pos_y, pos_s, pos_n, psi_veh] = kona_vehicle.Veh_position_update(veh_vel, the_wheel)
+        SOC = kona_vehicle.ModPower.ModBattery.SOC
         # Store data
-        sim1.StoreData([veh_vel, pos_x, pos_y, u_acc_in, u_brk_in])
+        sim1.StoreData([veh_vel, pos_x, pos_y, u_acc_in, u_brk_in, SOC])
         w_veh_deb.append(kona_vehicle.ModDrive.w_vehicle)
 
-    [sim1_veh_vel, sim1_pos_x, sim1_pos_y, sim1_u_acc, sim1_u_brk] = sim1.get_profile_value(['Veh_Vel','Pos_X','Pos_Y','Acc_Set','Brk_Set'])
+    [sim1_veh_vel, sim1_pos_x, sim1_pos_y, sim1_u_acc, sim1_u_brk, sim1_soc] = sim1.get_profile_value(['Veh_Vel','Pos_X','Pos_Y','Acc_Set','Brk_Set','SOC'])
     #%% 4. Result plot
     fig = plt.figure(figsize=(8,4))
     ax1 = plt.subplot(121)

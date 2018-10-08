@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pysim models - powertrain model &mdash; pysim 0.9 documentation</title>
+  <title>pysim models - power model &mdash; pysim 0.9 documentation</title>
   
 
   
@@ -88,6 +88,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pysim.html#py-sim-pakcage-overview">py_sim pakcage overview</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="pysim.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="pysim.models.html">pysim models</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pysim.models.html#simulation-models">simulation models</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="pysim.models.html#subpackages">Subpackages</a></li>
 </ul>
 </li>
@@ -144,13 +145,13 @@
         
           <li><a href="pysim.models.html">pysim models</a> &raquo;</li>
         
-      <li>pysim models - powertrain model</li>
+      <li>pysim models - power model</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/pysim.models.model_powertrain.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/pysim.models.model_power.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -163,10 +164,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-pysim.models.model_powertrain">
-<span id="pysim-models-powertrain-model"></span><h1>pysim models - powertrain model<a class="headerlink" href="#module-pysim.models.model_powertrain" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="simulation-model-vehicle">
-<h2>Simulation model : Vehicle<a class="headerlink" href="#simulation-model-vehicle" title="Permalink to this headline">¶</a></h2>
+  <div class="section" id="module-pysim.models.model_power">
+<span id="pysim-models-power-model"></span><h1>pysim models - power model<a class="headerlink" href="#module-pysim.models.model_power" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="simulation-model-power">
+<h2>Simulation model : Power<a class="headerlink" href="#simulation-model-power" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="author">
 <h3>Author<a class="headerlink" href="#author" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
@@ -197,53 +198,53 @@
 - Modify model configurations</li>
 </ul>
 <dl class="class">
-<dt id="pysim.models.model_powertrain.Mod_Battery">
-<em class="property">class </em><code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Mod_Battery</code><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Battery">
+<em class="property">class </em><code class="descclassname">pysim.models.model_power.</code><code class="descname">Mod_Battery</code><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="method">
-<dt id="pysim.models.model_powertrain.Mod_Battery.Battery_config">
-<code class="descname">Battery_config</code><span class="sig-paren">(</span><em>Voc=356.0</em>, <em>Etot=230400000.0</em>, <em>MaxPower=150000.0</em>, <em>R0=0.0016</em>, <em>SOC_init=70</em>, <em>R1_a=76.5218</em>, <em>R1_b=-7.9563</em>, <em>R1_c=23.8375</em>, <em>C1_a=-649.835</em>, <em>C1_b=-64.2924</em>, <em>C1_c=12692.1946</em>, <em>R2_a=5.2092</em>, <em>R2_b=-35.2367</em>, <em>R2_c=124.9467</em>, <em>C2_a=-78409.2788</em>, <em>C2_b=-0.0131</em>, <em>C2_c=30802.62582</em>, <em>Int_E=161280000.0</em>, <em>V1=0</em>, <em>V2=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Battery_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Battery_config" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Battery.Battery_config">
+<code class="descname">Battery_config</code><span class="sig-paren">(</span><em>Voc=356.0</em>, <em>Etot=230400000.0</em>, <em>MaxPower=150000.0</em>, <em>R0=0.0016</em>, <em>SOC_init=70</em>, <em>R1_a=76.5218</em>, <em>R1_b=-7.9563</em>, <em>R1_c=23.8375</em>, <em>C1_a=-649.835</em>, <em>C1_b=-64.2924</em>, <em>C1_c=12692.1946</em>, <em>R2_a=5.2092</em>, <em>R2_b=-35.2367</em>, <em>R2_c=124.9467</em>, <em>C2_a=-78409.2788</em>, <em>C2_b=-0.0131</em>, <em>C2_c=30802.62582</em>, <em>Int_E=161280000.0</em>, <em>V1=0</em>, <em>V2=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Battery_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Battery_config" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pysim.models.model_powertrain.Mod_Battery.Calc_Current">
-<code class="descname">Calc_Current</code><span class="sig-paren">(</span><em>Motor_Net_Power</em>, <em>AccPower=500</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Calc_Current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Calc_Current" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Battery.Calc_Current">
+<code class="descname">Calc_Current</code><span class="sig-paren">(</span><em>Motor_Net_Power</em>, <em>AccPower=500</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Calc_Current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Calc_Current" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pysim.models.model_powertrain.Mod_Battery.Calc_SOC">
-<code class="descname">Calc_SOC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Calc_SOC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Calc_SOC" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Battery.Calc_SOC">
+<code class="descname">Calc_SOC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Calc_SOC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Calc_SOC" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pysim.models.model_powertrain.Mod_Battery.Calc_Voc_rate">
-<code class="descname">Calc_Voc_rate</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Calc_Voc_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Calc_Voc_rate" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Battery.Calc_Voc_rate">
+<code class="descname">Calc_Voc_rate</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Calc_Voc_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Calc_Voc_rate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pysim.models.model_powertrain.Mod_Battery.Print_States">
-<code class="descname">Print_States</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Print_States"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Print_States" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Battery.Print_States">
+<code class="descname">Print_States</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Print_States"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Print_States" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="pysim.models.model_powertrain.Mod_Motor">
-<em class="property">class </em><code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Mod_Motor</code><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Motor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Motor" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Motor">
+<em class="property">class </em><code class="descclassname">pysim.models.model_power.</code><code class="descname">Mod_Motor</code><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Motor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Motor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="method">
-<dt id="pysim.models.model_powertrain.Mod_Motor.Motor_Elec_system">
-<code class="descname">Motor_Elec_system</code><span class="sig-paren">(</span><em>p_mot_elec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Motor.Motor_Elec_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Motor.Motor_Elec_system" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Motor.Motor_Elec_system">
+<code class="descname">Motor_Elec_system</code><span class="sig-paren">(</span><em>p_mot_elec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Motor.Motor_Elec_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Motor.Motor_Elec_system" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pysim.models.model_powertrain.Mod_Motor.Motor_Power_system">
-<code class="descname">Motor_Power_system</code><span class="sig-paren">(</span><em>t_mot</em>, <em>w_mot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Motor.Motor_Power_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Motor.Motor_Power_system" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Motor.Motor_Power_system">
+<code class="descname">Motor_Power_system</code><span class="sig-paren">(</span><em>t_mot</em>, <em>w_mot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Motor.Motor_Power_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Motor.Motor_Power_system" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pysim.models.model_powertrain.Mod_Motor.Motor_config">
-<code class="descname">Motor_config</code><span class="sig-paren">(</span><em>loss_mech_C0=0.0206</em>, <em>loss_mech_C1=-2.135e-05</em>, <em>loss_copper_C0=0.2034</em>, <em>loss_stray_C0=3.352e-06</em>, <em>loss_stray_C1=-2.612e-09</em>, <em>loss_iron_C0=1e-06</em>, <em>loss_iron_C1=1.55</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Motor.Motor_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Motor.Motor_config" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Motor.Motor_config">
+<code class="descname">Motor_config</code><span class="sig-paren">(</span><em>loss_mech_C0=0.0206</em>, <em>loss_mech_C1=-2.135e-05</em>, <em>loss_copper_C0=0.2034</em>, <em>loss_stray_C0=3.352e-06</em>, <em>loss_stray_C1=-2.612e-09</em>, <em>loss_iron_C0=1e-06</em>, <em>loss_iron_C1=1.55</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Motor.Motor_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Motor.Motor_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Motor parameter configuration</p>
 <p>Parameters not specified are declared as default values</p>
 <p>If you want set a specific parameter don't use this function,
@@ -261,12 +262,12 @@ just type:</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="pysim.models.model_powertrain.Mod_Power">
-<em class="property">class </em><code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Mod_Power</code><span class="sig-paren">(</span><em>Mod_Motor_loc=&lt;pysim.models.model_powertrain.Mod_Motor object&gt;</em>, <em>Mod_Battery_loc=&lt;pysim.models.model_powertrain.Mod_Battery object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Power"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Power" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Power">
+<em class="property">class </em><code class="descclassname">pysim.models.model_power.</code><code class="descname">Mod_Power</code><span class="sig-paren">(</span><em>Mod_Motor_loc=&lt;pysim.models.model_power.Mod_Motor object&gt;</em>, <em>Mod_Battery_loc=&lt;pysim.models.model_power.Mod_Battery object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Power"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Power" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="method">
-<dt id="pysim.models.model_powertrain.Mod_Power.Motor_driven">
-<code class="descname">Motor_driven</code><span class="sig-paren">(</span><em>torque_set=0</em>, <em>w_drivtrain=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Power.Motor_driven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Power.Motor_driven" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Mod_Power.Motor_driven">
+<code class="descname">Motor_driven</code><span class="sig-paren">(</span><em>torque_set=0</em>, <em>w_drivtrain=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Power.Motor_driven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Power.Motor_driven" title="Permalink to this definition">¶</a></dt>
 <dd><p>Motor driven function</p>
 <p>Generate motor output(torque, speed) and load torque according to input voltage and wheel speed (shaft speed = wheel speed)</p>
 <p>Contain theree modules <code class="docutils literal notranslate"><span class="pre">Elecic</span> <span class="pre">dynamics</span></code>, <code class="docutils literal notranslate"><span class="pre">Menahicla</span> <span class="pre">dynamics</span></code>, <code class="docutils literal notranslate"><span class="pre">Shaft</span> <span class="pre">dynamics</span></code></p>
@@ -290,8 +291,8 @@ just type:</p>
 </dd></dl>
 
 <dl class="data">
-<dt id="pysim.models.model_powertrain.Ts">
-<code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Ts</code><em class="property"> = 0.01</em><a class="headerlink" href="#pysim.models.model_powertrain.Ts" title="Permalink to this definition">¶</a></dt>
+<dt id="pysim.models.model_power.Ts">
+<code class="descclassname">pysim.models.model_power.</code><code class="descname">Ts</code><em class="property"> = 0.01</em><a class="headerlink" href="#pysim.models.model_power.Ts" title="Permalink to this definition">¶</a></dt>
 <dd><p>global vairable: simulation sampling timeself.</p>
 <p>you can declare other sampling time in application as vairable <code class="docutils literal notranslate"><span class="pre">Ts</span></code></p>
 </dd></dl>

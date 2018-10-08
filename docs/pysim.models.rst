@@ -13,4 +13,4 @@ Subpackages
 .. toctree::
    :maxdepth: 1
 
-   pysim.models.model_powertrain
+   pysim.models.model_power

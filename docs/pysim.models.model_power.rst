@@ -1,7 +1,7 @@
-pysim models - powertrain model
+pysim models - power model
 ===============================
 
-.. automodule:: pysim.models.model_powertrain
+.. automodule:: pysim.models.model_power
     :members:
     :undoc-members:
     :show-inheritance:
