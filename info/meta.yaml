@@ -1,0 +1,23 @@
+package:
+  name: pysim
+  version: "0.1.1"
+
+source:
+  path: ..
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+
+test:
+  imports:
+    - pysim
+
+about:
+  home: https://github.com/KyunghanMin/StateBasedPredictionAndControl
