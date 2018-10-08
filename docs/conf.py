@@ -22,7 +22,6 @@
 # sys.path.insert(0, os.path.abspath('.'))
 import os
 import sys
-import numpy
 base_dir = os.path.abspath('..')
 sys.path.append(base_dir)
 
