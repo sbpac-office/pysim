@@ -1,0 +1,246 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pysim models - powertrain model &#8212; pysim 0.9 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="pysim models" href="pysim.models.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-pysim.models.model_powertrain">
+<span id="pysim-models-powertrain-model"></span><h1>pysim models - powertrain model<a class="headerlink" href="#module-pysim.models.model_powertrain" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="simulation-model-vehicle">
+<h2>Simulation model : Vehicle<a class="headerlink" href="#simulation-model-vehicle" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="author">
+<h3>Author<a class="headerlink" href="#author" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>kyunghan &lt;<a class="reference external" href="mailto:kyunghah&#46;min&#37;&#52;&#48;gmail&#46;com">kyunghah<span>&#46;</span>min<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</li>
+</ul>
+</div>
+<div class="section" id="description">
+<h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Powertrain class
+- Motor class
+- Drivetrain class
+- Battery class</li>
+<li>Powertrain &lt;- Motor,Battery (Composition relationship)</li>
+<li>Motor &lt;-&gt; Battery (Aggregation relationship)</li>
+</ul>
+</div>
+<div class="section" id="update">
+<h3>Update<a class="headerlink" href="#update" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>[18/05/31] - Initial release - kyunghan</li>
+<li>[18/06/01] - Add battery class - seungeon</li>
+<li>[18/06/01] - Modulization - kyuhwan
+- Powertrain class -&gt; Divide into motor, battery classes
+- Powertrain class has composition relationship with motor, battery</li>
+<li>[18/06/11] - Modification - kyunghan
+- Modify drivetrain module to body module
+- Modify model configurations</li>
+</ul>
+<dl class="class">
+<dt id="pysim.models.model_powertrain.Mod_Battery">
+<em class="property">class </em><code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Mod_Battery</code><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="pysim.models.model_powertrain.Mod_Battery.Battery_config">
+<code class="descname">Battery_config</code><span class="sig-paren">(</span><em>Voc=356.0</em>, <em>Etot=230400000.0</em>, <em>MaxPower=150000.0</em>, <em>R0=0.0016</em>, <em>SOC_init=70</em>, <em>R1_a=76.5218</em>, <em>R1_b=-7.9563</em>, <em>R1_c=23.8375</em>, <em>C1_a=-649.835</em>, <em>C1_b=-64.2924</em>, <em>C1_c=12692.1946</em>, <em>R2_a=5.2092</em>, <em>R2_b=-35.2367</em>, <em>R2_c=124.9467</em>, <em>C2_a=-78409.2788</em>, <em>C2_b=-0.0131</em>, <em>C2_c=30802.62582</em>, <em>Int_E=161280000.0</em>, <em>V1=0</em>, <em>V2=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Battery_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Battery_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_powertrain.Mod_Battery.Calc_Current">
+<code class="descname">Calc_Current</code><span class="sig-paren">(</span><em>Motor_Net_Power</em>, <em>AccPower=500</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Calc_Current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Calc_Current" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_powertrain.Mod_Battery.Calc_SOC">
+<code class="descname">Calc_SOC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Calc_SOC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Calc_SOC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_powertrain.Mod_Battery.Calc_Voc_rate">
+<code class="descname">Calc_Voc_rate</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Calc_Voc_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Calc_Voc_rate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_powertrain.Mod_Battery.Print_States">
+<code class="descname">Print_States</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Print_States"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Print_States" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pysim.models.model_powertrain.Mod_Motor">
+<em class="property">class </em><code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Mod_Motor</code><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Motor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Motor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="pysim.models.model_powertrain.Mod_Motor.Motor_Elec_system">
+<code class="descname">Motor_Elec_system</code><span class="sig-paren">(</span><em>p_mot_elec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Motor.Motor_Elec_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Motor.Motor_Elec_system" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_powertrain.Mod_Motor.Motor_Power_system">
+<code class="descname">Motor_Power_system</code><span class="sig-paren">(</span><em>t_mot</em>, <em>w_mot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Motor.Motor_Power_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Motor.Motor_Power_system" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_powertrain.Mod_Motor.Motor_config">
+<code class="descname">Motor_config</code><span class="sig-paren">(</span><em>loss_mech_C0=0.0206</em>, <em>loss_mech_C1=-2.135e-05</em>, <em>loss_copper_C0=0.2034</em>, <em>loss_stray_C0=3.352e-06</em>, <em>loss_stray_C1=-2.612e-09</em>, <em>loss_iron_C0=1e-06</em>, <em>loss_iron_C1=1.55</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Motor.Motor_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Motor.Motor_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Motor parameter configuration</p>
+<p>Parameters not specified are declared as default values</p>
+<p>If you want set a specific parameter don't use this function,
+just type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Mod_PowerTrain</span><span class="o">.</span><span class="n">conf_rm_mot</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>Motor parameter values, default values are setted</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pysim.models.model_powertrain.Mod_Power">
+<em class="property">class </em><code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Mod_Power</code><span class="sig-paren">(</span><em>Mod_Motor_loc=&lt;pysim.models.model_powertrain.Mod_Motor object&gt;</em>, <em>Mod_Battery_loc=&lt;pysim.models.model_powertrain.Mod_Battery object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Power"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Power" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="pysim.models.model_powertrain.Mod_Power.Motor_driven">
+<code class="descname">Motor_driven</code><span class="sig-paren">(</span><em>torque_set=0</em>, <em>w_drivtrain=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Power.Motor_driven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Power.Motor_driven" title="Permalink to this definition">¶</a></dt>
+<dd><p>Motor driven function</p>
+<p>Generate motor output(torque, speed) and load torque according to input voltage and wheel speed (shaft speed = wheel speed)</p>
+<p>Contain theree modules <code class="docutils literal"><span class="pre">Elecic</span> <span class="pre">dynamics</span></code>, <code class="docutils literal"><span class="pre">Menahicla</span> <span class="pre">dynamics</span></code>, <code class="docutils literal"><span class="pre">Shaft</span> <span class="pre">dynamics</span></code></p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>v_in: motor input voltage [V]</li>
+<li>w_shaft: rotational speed of drive shaft from body model [rad/s]</li>
+</ul>
+</dd>
+<dt>returns:</dt>
+<dd><ul class="first last simple">
+<li>t_mot: motor torque [Nm]</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+<li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="pysim.models.model_powertrain.Ts">
+<code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Ts</code><em class="property"> = 0.01</em><a class="headerlink" href="#pysim.models.model_powertrain.Ts" title="Permalink to this definition">¶</a></dt>
+<dd><p>global vairable: simulation sampling timeself.</p>
+<p>you can declare other sampling time in application as vairable <code class="docutils literal"><span class="pre">Ts</span></code></p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pysim</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pysim.html">pysim package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pysim.html#py-sim-pakcage-overview">py_sim pakcage overview</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pysim.html#subpackages">Subpackages</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="pysim.html">pysim package</a><ul>
+  <li><a href="pysim.models.html">pysim models</a><ul>
+      <li>Previous: <a href="pysim.models.html" title="previous chapter">pysim models</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Kyunghan.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/pysim.models.model_powertrain.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
