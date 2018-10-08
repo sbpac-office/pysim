@@ -6,10 +6,4 @@ pysim models
     :undoc-members:
     :show-inheritance:
 
-Subpackages
------------
 
-.. toctree::
-   :maxdepth: 1
-
-   pysim.models.model_powertrain
