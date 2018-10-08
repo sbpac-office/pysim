@@ -1,43 +1,167 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="python">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>pysim models - powertrain model &#8212; pysim 0.9 documentation</title>
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.9',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pysim models - powertrain model &mdash; pysim 0.9 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="pysim models" href="pysim.models.html" />
+    <link rel="prev" title="pysim models" href="pysim.models.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
    
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  <div class="wy-grid-for-nav">
 
-  </head>
-  <body>
-  
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+          
+            <a href="index.html" class="icon icon-home"> pysim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pysim.html">pysim package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pysim.html#py-sim-pakcage-overview">py_sim pakcage overview</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pysim.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pysim.models.html">pysim models</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="pysim.models.html#subpackages">Subpackages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pysim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="pysim.html">pysim package</a> &raquo;</li>
+        
+          <li><a href="pysim.models.html">pysim models</a> &raquo;</li>
+        
+      <li>pysim models - powertrain model</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/pysim.models.model_powertrain.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="module-pysim.models.model_powertrain">
 <span id="pysim-models-powertrain-model"></span><h1>pysim models - powertrain model<a class="headerlink" href="#module-pysim.models.model_powertrain" title="Permalink to this headline">¶</a></h1>
@@ -75,7 +199,7 @@
 <dl class="class">
 <dt id="pysim.models.model_powertrain.Mod_Battery">
 <em class="property">class </em><code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Mod_Battery</code><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="pysim.models.model_powertrain.Mod_Battery.Battery_config">
 <code class="descname">Battery_config</code><span class="sig-paren">(</span><em>Voc=356.0</em>, <em>Etot=230400000.0</em>, <em>MaxPower=150000.0</em>, <em>R0=0.0016</em>, <em>SOC_init=70</em>, <em>R1_a=76.5218</em>, <em>R1_b=-7.9563</em>, <em>R1_c=23.8375</em>, <em>C1_a=-649.835</em>, <em>C1_b=-64.2924</em>, <em>C1_c=12692.1946</em>, <em>R2_a=5.2092</em>, <em>R2_b=-35.2367</em>, <em>R2_c=124.9467</em>, <em>C2_a=-78409.2788</em>, <em>C2_b=-0.0131</em>, <em>C2_c=30802.62582</em>, <em>Int_E=161280000.0</em>, <em>V1=0</em>, <em>V2=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Battery.Battery_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Battery.Battery_config" title="Permalink to this definition">¶</a></dt>
@@ -106,7 +230,7 @@
 <dl class="class">
 <dt id="pysim.models.model_powertrain.Mod_Motor">
 <em class="property">class </em><code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Mod_Motor</code><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Motor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Motor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="pysim.models.model_powertrain.Mod_Motor.Motor_Elec_system">
 <code class="descname">Motor_Elec_system</code><span class="sig-paren">(</span><em>p_mot_elec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Motor.Motor_Elec_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Motor.Motor_Elec_system" title="Permalink to this definition">¶</a></dt>
@@ -124,7 +248,7 @@
 <p>Parameters not specified are declared as default values</p>
 <p>If you want set a specific parameter don't use this function,
 just type:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Mod_PowerTrain</span><span class="o">.</span><span class="n">conf_rm_mot</span> <span class="o">=</span> <span class="mf">0.2</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Mod_PowerTrain</span><span class="o">.</span><span class="n">conf_rm_mot</span> <span class="o">=</span> <span class="mf">0.2</span>
 <span class="gp">...</span>
 </pre></div>
 </div>
@@ -139,13 +263,13 @@ just type:</p>
 <dl class="class">
 <dt id="pysim.models.model_powertrain.Mod_Power">
 <em class="property">class </em><code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Mod_Power</code><span class="sig-paren">(</span><em>Mod_Motor_loc=&lt;pysim.models.model_powertrain.Mod_Motor object&gt;</em>, <em>Mod_Battery_loc=&lt;pysim.models.model_powertrain.Mod_Battery object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Power"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Power" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="pysim.models.model_powertrain.Mod_Power.Motor_driven">
 <code class="descname">Motor_driven</code><span class="sig-paren">(</span><em>torque_set=0</em>, <em>w_drivtrain=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_powertrain.html#Mod_Power.Motor_driven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_powertrain.Mod_Power.Motor_driven" title="Permalink to this definition">¶</a></dt>
 <dd><p>Motor driven function</p>
 <p>Generate motor output(torque, speed) and load torque according to input voltage and wheel speed (shaft speed = wheel speed)</p>
-<p>Contain theree modules <code class="docutils literal"><span class="pre">Elecic</span> <span class="pre">dynamics</span></code>, <code class="docutils literal"><span class="pre">Menahicla</span> <span class="pre">dynamics</span></code>, <code class="docutils literal"><span class="pre">Shaft</span> <span class="pre">dynamics</span></code></p>
+<p>Contain theree modules <code class="docutils literal notranslate"><span class="pre">Elecic</span> <span class="pre">dynamics</span></code>, <code class="docutils literal notranslate"><span class="pre">Menahicla</span> <span class="pre">dynamics</span></code>, <code class="docutils literal notranslate"><span class="pre">Shaft</span> <span class="pre">dynamics</span></code></p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><ul class="first last simple">
@@ -169,7 +293,7 @@ just type:</p>
 <dt id="pysim.models.model_powertrain.Ts">
 <code class="descclassname">pysim.models.model_powertrain.</code><code class="descname">Ts</code><em class="property"> = 0.01</em><a class="headerlink" href="#pysim.models.model_powertrain.Ts" title="Permalink to this definition">¶</a></dt>
 <dd><p>global vairable: simulation sampling timeself.</p>
-<p>you can declare other sampling time in application as vairable <code class="docutils literal"><span class="pre">Ts</span></code></p>
+<p>you can declare other sampling time in application as vairable <code class="docutils literal notranslate"><span class="pre">Ts</span></code></p>
 </dd></dl>
 
 </div>
@@ -177,70 +301,69 @@ just type:</p>
 </div>
 
 
+           </div>
+           
           </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="pysim.models.html" class="btn btn-neutral" title="pysim models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Kyunghan.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">pysim</a></h1>
+
+    </section>
+
+  </div>
+  
 
 
+  
 
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.9',
+            LANGUAGE:'python',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
 
+  
 
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
 
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
 
-
-<h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
-<ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="pysim.html">pysim package</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="pysim.html#py-sim-pakcage-overview">py_sim pakcage overview</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="pysim.html#subpackages">Subpackages</a></li>
-</ul>
-</li>
-</ul>
-
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="index.html">Documentation overview</a><ul>
-  <li><a href="pysim.html">pysim package</a><ul>
-  <li><a href="pysim.models.html">pysim models</a><ul>
-      <li>Previous: <a href="pysim.models.html" title="previous chapter">pysim models</a></li>
-  </ul></li>
-  </ul></li>
-  </ul></li>
-</ul>
-</div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2018, Kyunghan.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
-      
-      |
-      <a href="_sources/pysim.models.model_powertrain.rst.txt"
-          rel="nofollow">Page source</a>
-    </div>
-
-    
-
-    
-  </body>
+</body>
 </html>
