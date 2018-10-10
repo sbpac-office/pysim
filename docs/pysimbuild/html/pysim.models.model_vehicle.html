@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="pysim models - maneuver model" href="pysim.models.model_maneuver.html" />
+    <link rel="next" title="pysim models - environment model" href="pysim.models.model_environment.html" />
     <link rel="prev" title="pysim models - power model" href="pysim.models.model_power.html" /> 
 
   
@@ -90,7 +90,7 @@
 <li class="toctree-l2 current"><a class="reference internal" href="pysim.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="pysim.models.html">pysim models</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="pysim.models.html#simulation-models">simulation models</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="pysim.models.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="pysim.models.html#modules">Modules</a></li>
 </ul>
 </li>
 </ul>
@@ -423,10 +423,14 @@ Drive shaft efficiency, gear ratio</dd>
 <dt id="pysim.models.model_vehicle.Mod_Veh.Drag_system">
 <code class="descname">Drag_system</code><span class="sig-paren">(</span><em>vel_veh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Drag_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Drag_system" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate drag torque</p>
-<p>Air drag::
-f_drag_air = 0.5*1.25*self.conf_drag_air_coef*vel_veh**2</p>
-<p>Rolling resistance::
-f_drag_roll = self.conf_drag_ca + self.conf_drag_cc*vel_veh**2</p>
+<p>Air drag:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">f_drag_air</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="mf">1.25</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_drag_air_coef</span><span class="o">*</span><span class="n">vel_veh</span><span class="o">**</span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>Rolling resistance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">f_drag_roll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_drag_ca</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_drag_cc</span><span class="o">*</span><span class="n">vel_veh</span><span class="o">**</span><span class="mi">2</span>
+</pre></div>
+</div>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><ul class="first last simple">
@@ -651,7 +655,7 @@ just type:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="pysim.models.model_maneuver.html" class="btn btn-neutral float-right" title="pysim models - maneuver model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="pysim.models.model_environment.html" class="btn btn-neutral float-right" title="pysim models - environment model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="pysim.models.model_power.html" class="btn btn-neutral" title="pysim models - power model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

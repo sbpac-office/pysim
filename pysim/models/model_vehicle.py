@@ -490,10 +490,12 @@ class Mod_Veh:
         """Calculate drag torque
 
         Air drag::
-        f_drag_air = 0.5*1.25*self.conf_drag_air_coef*vel_veh**2
+
+            f_drag_air = 0.5*1.25*self.conf_drag_air_coef*vel_veh**2
 
         Rolling resistance::
-        f_drag_roll = self.conf_drag_ca + self.conf_drag_cc*vel_veh**2
+
+            f_drag_roll = self.conf_drag_ca + self.conf_drag_cc*vel_veh**2
 
         Args:
             * vel_veh: vehicle velocity [m/s]
