@@ -1,0 +1,714 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pysim models - vehicle model &mdash; pysim 0.9 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pysim models - maneuver model" href="pysim.models.model_maneuver.html" />
+    <link rel="prev" title="pysim models - power model" href="pysim.models.model_power.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pysim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pysim.html">pysim package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pysim.html#pysim-pakcage-overview">pysim pakcage overview</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pysim.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pysim.models.html">pysim models</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pysim.models.html#simulation-models">simulation models</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="pysim.models.html#subpackages">Subpackages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pysim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="pysim.html">pysim package</a> &raquo;</li>
+        
+          <li><a href="pysim.models.html">pysim models</a> &raquo;</li>
+        
+      <li>pysim models - vehicle model</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/pysim.models.model_vehicle.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pysim.models.model_vehicle">
+<span id="pysim-models-vehicle-model"></span><h1>pysim models - vehicle model<a class="headerlink" href="#module-pysim.models.model_vehicle" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="simulation-model-vehicle">
+<h2>Simulation model : Vehicle<a class="headerlink" href="#simulation-model-vehicle" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="description">
+<h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Simulate vehicle dynamics of EV</li>
+</ul>
+</div>
+<div class="section" id="modules-summary">
+<h3>Modules summary<a class="headerlink" href="#modules-summary" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><dl class="first docutils">
+<dt>Body module - simulate dynamics of drivetrain</dt>
+<dd><ul class="first last simple">
+<li>Drivetrain_config - configure drive train Parameters</li>
+<li>Lon_equivalence - calculate rotational dynamics of equivalent vehicle</li>
+<li>Driveshaft_dynamics - calculate rotational dynamics of drive shaft</li>
+<li>Tire_dynamics - calculate rotational dynamics of tire</li>
+<li>Motor_dynamics - calculate rotational dynamics of motor out</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Vehicle module - contain <code class="docutils literal notranslate"><span class="pre">power</span> <span class="pre">module</span></code> and <code class="docutils literal notranslate"><span class="pre">body</span> <span class="pre">module</span></code>, simulate vehicle behavior</dt>
+<dd><ul class="first last simple">
+<li>Veh_init_config - configure initial vehicle state, position, velocity</li>
+<li>Veh_config - configure vehicle parameters</li>
+<li>Veh_position_update - update vehicle position according to speed and steering</li>
+<li><dl class="first docutils">
+<dt>Veh_driven - calculate vehicle velocity and wheel theta</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>Veh_lon_driven - simulate longitudinal vehicle behavior (include <code class="docutils literal notranslate"><span class="pre">Mod_Power(Motor_driven)</span></code>, <code class="docutils literal notranslate"><span class="pre">Mod_Body(Lon_equivalence)</span></code>)</dt>
+<dd><ul class="first last">
+<li>Veh_lon_dynamics - calculate vehicle acceleration according to traction force and drag force</li>
+<li>Acc_system - determine desired torque set according to acceleration pedal position</li>
+<li>Brake_system - determine brake torque set according to brake pedal position</li>
+<li>Drag_system - determine air and rolling resistance force</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Veh_lat_driven - simulate lateral vehicle behavior</dt>
+<dd><ul class="first last">
+<li>Veh_lat_dynamics - calculate tire wheel dynamics according to steering input</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p class="first">Module diagram:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Veh_driven</span><span class="p">(</span> <span class="n">Veh_lon_driven</span><span class="p">,</span> <span class="n">Veh_lat_driven</span> <span class="p">)</span>
+    <span class="o">&gt;&gt;</span> <span class="n">Veh_lon_driven</span><span class="p">(</span> <span class="n">Veh_lon_dynamics</span><span class="p">,</span> <span class="n">Acc_system</span><span class="p">,</span> <span class="n">Brake_system</span><span class="p">,</span> <span class="n">Drag_system</span><span class="p">,</span> <span class="n">Motor_driven</span><span class="p">,</span> <span class="n">Lon_equivalence</span> <span class="p">)</span>
+        <span class="o">&gt;&gt;</span> <span class="n">Lon_equivalence</span> <span class="ow">in</span> <span class="n">Mod_Body</span>
+        <span class="o">&gt;&gt;</span> <span class="n">Motor_driven</span> <span class="ow">in</span> <span class="n">Mod_Power</span>
+    <span class="o">&gt;&gt;</span> <span class="n">Veh_lat_driven</span><span class="p">(</span> <span class="n">Veh_lat_dynamics</span> <span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="update">
+<h3>Update<a class="headerlink" href="#update" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>[18/05/31] - Initial release - Kyunghan</li>
+<li>[18/06/01] - Seperate powertrain class in new file - Kyuhwan</li>
+<li>[18/06/11] - Modification - Kyunghan
+- Modify drivetrain module to body module
+- Modify model configurations
+- Add regeneration module in body.brake_system</li>
+<li>[18/08/08] - Restructure - Kyunghan
+- Modify drive train module
+- Modify tire module
+- Modify drag force module</li>
+</ul>
+<dl class="class">
+<dt id="pysim.models.model_vehicle.Mod_Body">
+<em class="property">class </em><code class="descclassname">pysim.models.model_vehicle.</code><code class="descname">Mod_Body</code><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Body"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Body" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<ul class="simple">
+<li>Body module</li>
+</ul>
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Body.Driveshaft_dynamics">
+<code class="descname">Driveshaft_dynamics</code><span class="sig-paren">(</span><em>t_shaft_in</em>, <em>t_shaft_out</em>, <em>w_shaft</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Body.Driveshaft_dynamics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Body.Driveshaft_dynamics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate rotational dynamics of shaft</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>t_shaft_in: shaft in torque = motor_out torque - mechanical loss [Nm]</li>
+<li>t_shaft_out: shaft out torque [Nm]</li>
+<li>w_shaft: previous rotational speed of shaft [rad/s]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>w_shaft: updated rotational speed of shaft [rad/s]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Body.Drivetrain_config">
+<code class="descname">Drivetrain_config</code><span class="sig-paren">(</span><em>conf_rd_wheel=0.301</em>, <em>conf_jw_wheel=0.1431</em>, <em>conf_jw_diff_in=0.015</em>, <em>conf_jw_diff_out=0.015</em>, <em>conf_jw_trns_out=0.015</em>, <em>conf_jw_trns_in=0.01</em>, <em>conf_jw_mot=0.005</em>, <em>conf_eff_trns=0.96</em>, <em>conf_eff_diff=0.9796</em>, <em>conf_eff_diff_neg=0.9587</em>, <em>conf_gear=6.058</em>, <em>conf_mass_veh=1200</em>, <em>conf_mass_add=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Body.Drivetrain_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Body.Drivetrain_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Drivetrain and body parameter configuration
+Parameters not specified are declared as default values
+If you want set a specific parameter don't use this function,
+just type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Mod_Body</span><span class="o">.</span><span class="n">conf_veh_len</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>Vehicle mass
+Wheel radius
+Momentum of inertia: shaft, wheel
+Drive shaft efficiency, gear ratio</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Body.Lon_equivalence">
+<code class="descname">Lon_equivalence</code><span class="sig-paren">(</span><em>t_mot</em>, <em>t_brk</em>, <em>t_drag</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Body.Lon_equivalence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Body.Lon_equivalence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate equivalent rotational dynamics of vhielce</p>
+<p>Equivalet component: Motor + Shaft + Wheel + Vehicle</p>
+<p>Dynamics:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">w_vehicle_dot</span> <span class="o">=</span> <span class="p">(</span><span class="n">t_motor</span> <span class="o">-</span> <span class="n">t_drag</span> <span class="o">-</span> <span class="n">t_brake</span><span class="p">)</span> <span class="o">/</span> <span class="n">j_veh</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>t_mot: motor torque [Nm]</li>
+<li>t_brk: brake torque [Nm]</li>
+<li>t_drag: equivalent drag torque [Nm]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>load torque: load torque of each component [Nm]</li>
+<li>f_lon: longitudinal traction force [N]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Body.Motor_dynamics">
+<code class="descname">Motor_dynamics</code><span class="sig-paren">(</span><em>t_mot</em>, <em>t_mot_load</em>, <em>w_motor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Body.Motor_dynamics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Body.Motor_dynamics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate rotational dynamics of motor</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>t_mot: motor generated torque [Nm]</li>
+<li>t_mot_load: motor load torque to shaft [Nm]</li>
+<li>w_shaft: previous rotational speed of motor [rad/s]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>w_shaft: updated rotational speed of motor [rad/s]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Body.Tire_dynamics">
+<code class="descname">Tire_dynamics</code><span class="sig-paren">(</span><em>t_wheel_load</em>, <em>t_wheel_traction_f</em>, <em>t_brk</em>, <em>w_wheel</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Body.Tire_dynamics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Body.Tire_dynamics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate rotational dynamics of wheel</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>t_wheel_load: wheel in torque = shaft out torque [Nm]</li>
+<li>t_wheel_traction_f: wheel out torque to traction force [Nm]</li>
+<li>t_brk: brake torque [Nm]</li>
+<li>w_shaft: previous rotational speed of wheel [rad/s]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>w_shaft: updated rotational speed of wheel [rad/s]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pysim.models.model_vehicle.Mod_Veh">
+<em class="property">class </em><code class="descclassname">pysim.models.model_vehicle.</code><code class="descname">Mod_Veh</code><span class="sig-paren">(</span><em>powertrain_model</em>, <em>drivetrain_model</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<ul class="simple">
+<li>Vehicle module: Set the <code class="docutils literal notranslate"><span class="pre">power</span></code> and <code class="docutils literal notranslate"><span class="pre">body</span></code> model when initialization</li>
+</ul>
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Acc_system">
+<code class="descname">Acc_system</code><span class="sig-paren">(</span><em>u_acc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Acc_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Acc_system" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine desired motor torque</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>u_acc: acceleration pedal of driver [-]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>t_mot_des: desired motor torque [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Brake_system">
+<code class="descname">Brake_system</code><span class="sig-paren">(</span><em>u_brake</em>, <em>t_reg_set=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Brake_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Brake_system" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine brake torque</p>
+<p>Regen control:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">swtRegCtl</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Meachanical braking</span>
+<span class="n">swtRegCtl</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># Transfer braking torque to regenerative motor torque</span>
+<span class="n">swtRegCtl</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># Set the specific regenerative motor torque</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>u_brake: acceleration pedal of driver [-]</li>
+<li>t_reg_set: Regenerative torque set [-]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>t_brake: Braking torque [Nm]</li>
+<li>t_mot_reg: Regenerative motor torque [Nm]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Drag_system">
+<code class="descname">Drag_system</code><span class="sig-paren">(</span><em>vel_veh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Drag_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Drag_system" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate drag torque</p>
+<p>Air drag::
+f_drag_air = 0.5*1.25*self.conf_drag_air_coef*vel_veh**2</p>
+<p>Rolling resistance::
+f_drag_roll = self.conf_drag_ca + self.conf_drag_cc*vel_veh**2</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>vel_veh: vehicle velocity [m/s]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>t_drag: total drag torque [Nm]</li>
+<li>f_drag: total drag force [N]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Veh_config">
+<code class="descname">Veh_config</code><span class="sig-paren">(</span><em>conf_drag_air_coef=0</em>, <em>conf_add_weight=0</em>, <em>conf_drag_ca=143.06</em>, <em>conf_drag_cc=0.4405</em>, <em>conf_veh_len=2</em>, <em>conf_acc_trq_fac=82.76</em>, <em>conf_brk_trq_fac=501.8</em>, <em>conf_motreg_max=100</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Veh_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Veh_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vehicle parameter configuration
+Parameters not specified are declared as default values
+If you want set a specific parameter don't use this function,
+just type:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Mod_Body</span><span class="o">.</span><span class="n">conf_veh_len</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>Vehicle size</li>
+<li>Air drag coefficient</li>
+<li>Rolling resistance coefficient</li>
+<li>Acceleration, Brake coefficient</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Veh_driven">
+<code class="descname">Veh_driven</code><span class="sig-paren">(</span><em>u_acc</em>, <em>u_brake</em>, <em>u_steer=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Veh_driven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Veh_driven" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate vehicle behavior according to driver's input</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>u_acc: Acceleration pedal position [-]</li>
+<li>u_brake: Brake pedal position [-]</li>
+<li>u_steer: Steering wheel angle [-]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>vel_veh: Vehicle velocity [m/s]</li>
+<li>the_wheel: Wheel heading angle [rad]</li>
+</ul>
+</dd>
+<dt>Include:</dt>
+<dd><ul class="first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Veh(Veh_lon_driven,Veh_lat_driven)</span></code>: Simulate vehicle behavior</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Veh_init_config">
+<code class="descname">Veh_init_config</code><span class="sig-paren">(</span><em>x_veh=0</em>, <em>y_veh=0</em>, <em>s_veh=0</em>, <em>n_veh=0</em>, <em>psi_veh=0</em>, <em>vel_veh=0</em>, <em>theta_wheel=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Veh_init_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Veh_init_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize vehicle state</p>
+<dl class="docutils">
+<dt>State:</dt>
+<dd><ul class="first last simple">
+<li>Vehicle position on environment</li>
+<li>Velocity</li>
+<li>Heading angle</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Veh_lat_driven">
+<code class="descname">Veh_lat_driven</code><span class="sig-paren">(</span><em>u_steer</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Veh_lat_driven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Veh_lat_driven" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate lateral vehicle behavior according to driver's input</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>u_steer: steering input [-]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>the_wheel: wheel heading angle [rad]</li>
+</ul>
+</dd>
+<dt>Include:</dt>
+<dd><ul class="first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Veh(Veh_lat_dynamics)</span></code>: Calculate wheel dynamics</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Veh_lat_dynamics">
+<code class="descname">Veh_lat_dynamics</code><span class="sig-paren">(</span><em>the_wheel</em>, <em>u_steer</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Veh_lat_dynamics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Veh_lat_dynamics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate lateral vehicle dynamics</p>
+<p>Dynamics:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">the_wheel_dot</span> <span class="o">=</span> <span class="p">(</span><span class="n">u_steer</span> <span class="o">-</span> <span class="n">the_wheel</span><span class="p">)</span> <span class="o">/</span> <span class="n">lat_dynamic_coeff</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>u_steer: steering input of driver [-]</li>
+<li>the_wheel: longitudinal drag force from Drag_system, Brake_system [N]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>the_wheel: vehicle velocity [m/s]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Veh_lon_driven">
+<code class="descname">Veh_lon_driven</code><span class="sig-paren">(</span><em>u_acc</em>, <em>u_brake</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Veh_lon_driven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Veh_lon_driven" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate longitudinal vehicle behavior according to driver's input</p>
+<p>Calculate total drag force from Drag_system in vehicle module</p>
+<p>Determine driven force from Acc_system and Brake_system in vehicle module</p>
+<p>Drive Lon_equivalence function in body module</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>u_acc: Acceleration pedal position [-]</li>
+<li>u_brake: Brake pedal position [-]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>veh_vel: Vehicle velocity [m/s]</li>
+<li>s, n position: Road relative vehicle position [m]</li>
+<li>psi_veh: Vehicle heading angle [rad]</li>
+</ul>
+</dd>
+<dt>Include:</dt>
+<dd><ul class="first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Veh(Acc_system,</span> <span class="pre">Brake_system,</span> <span class="pre">Drag_system,</span> <span class="pre">Veh_lon_dynamics)</span></code>: Determine driven torque</li>
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Body(Lon_equivalence)</span></code>: Calculate vehicle rotational dynamics</li>
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Power(Motor_driven)</span></code>: Determine motor driven torque</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Veh_lon_dynamics">
+<code class="descname">Veh_lon_dynamics</code><span class="sig-paren">(</span><em>f_lon</em>, <em>f_drag</em>, <em>vel_veh</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Veh_lon_dynamics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Veh_lon_dynamics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate longitudinal vehicle dynamics</p>
+<p>Equivalet component: Motor + Shaft + Wheel + Vehicle</p>
+<p>Dynamics:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">veh_acc</span> <span class="o">=</span> <span class="p">(</span><span class="n">f_lon</span> <span class="o">-</span> <span class="n">f_drag</span><span class="p">)</span> <span class="o">/</span> <span class="n">m_veh</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>f_lon: longitudinal driven force from Lon_equivalence [N]</li>
+<li>f_drag: longitudinal drag force from Drag_system, Brake_system [N]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>veh_vel: vehicle velocity [m/s]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_vehicle.Mod_Veh.Veh_position_update">
+<code class="descname">Veh_position_update</code><span class="sig-paren">(</span><em>vel_veh=0</em>, <em>the_wheel=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_vehicle.html#Mod_Veh.Veh_position_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_vehicle.Mod_Veh.Veh_position_update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update vehicle position on environment</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>vel_veh: Vehicle velocity [m/s]</li>
+<li>the_wheel: Wheel angle [rad]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>x, y position: Absolute vehicle coordinate [m]</li>
+<li>s, n position: Road relative vehicle position [m]</li>
+<li>psi_veh: Vehicle heading angle [rad]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="pysim.models.model_vehicle.Ts">
+<code class="descclassname">pysim.models.model_vehicle.</code><code class="descname">Ts</code><em class="property"> = 0.01</em><a class="headerlink" href="#pysim.models.model_vehicle.Ts" title="Permalink to this definition">¶</a></dt>
+<dd><p>global vairable: simulation sampling timeself.</p>
+<p>you can declare other sampling time in application as vairable <code class="docutils literal notranslate"><span class="pre">Ts</span></code></p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pysim.models.model_maneuver.html" class="btn btn-neutral float-right" title="pysim models - maneuver model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pysim.models.model_power.html" class="btn btn-neutral" title="pysim models - power model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Kyunghan.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.9',
+            LANGUAGE:'python',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

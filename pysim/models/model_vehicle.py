@@ -3,29 +3,55 @@
 Simulation model : Vehicle
 ==============================================================
 
-Author
-~~~~~~~~~~~~~
-* kyunghan <kyunghah.min@gmail.com>
-
 Description
 ~~~~~~~~~~~~~
-* Body model
-* Vehicle model
+* Simulate vehicle dynamics of EV
+
+Modules summary
+~~~~~~~~~~~~~~~~~
+* Body module - simulate dynamics of drivetrain
+    * Drivetrain_config - configure drive train Parameters
+    * Lon_equivalence - calculate rotational dynamics of equivalent vehicle
+    * Driveshaft_dynamics - calculate rotational dynamics of drive shaft
+    * Tire_dynamics - calculate rotational dynamics of tire
+    * Motor_dynamics - calculate rotational dynamics of motor out
+
+* Vehicle module - contain ``power module`` and ``body module``, simulate vehicle behavior
+    * Veh_init_config - configure initial vehicle state, position, velocity
+    * Veh_config - configure vehicle parameters
+    * Veh_position_update - update vehicle position according to speed and steering
+    * Veh_driven - calculate vehicle velocity and wheel theta
+        * Veh_lon_driven - simulate longitudinal vehicle behavior (include ``Mod_Power(Motor_driven)``, ``Mod_Body(Lon_equivalence)``)
+            * Veh_lon_dynamics - calculate vehicle acceleration according to traction force and drag force
+            * Acc_system - determine desired torque set according to acceleration pedal position
+            * Brake_system - determine brake torque set according to brake pedal position
+            * Drag_system - determine air and rolling resistance force
+        * Veh_lat_driven - simulate lateral vehicle behavior
+            * Veh_lat_dynamics - calculate tire wheel dynamics according to steering input
+
+
+* Module diagram::
+
+    Veh_driven( Veh_lon_driven, Veh_lat_driven )
+        >> Veh_lon_driven( Veh_lon_dynamics, Acc_system, Brake_system, Drag_system, Motor_driven, Lon_equivalence )
+            >> Lon_equivalence in Mod_Body
+            >> Motor_driven in Mod_Power
+        >> Veh_lat_driven( Veh_lat_dynamics )
 
 Update
 ~~~~~~~~~~~~~
-* [18/05/31] - Initial release - kyunghan
-* [18/06/01] - Revision 01 - Kyuhwan
-  - Seperate powertrain class in new file
-* [18/06/11] - Revision 02 - kyunghan
+* [18/05/31] - Initial release - Kyunghan
+* [18/06/01] - Seperate powertrain class in new file - Kyuhwan
+* [18/06/11] - Modification - Kyunghan
   - Modify drivetrain module to body module
   - Modify model configurations
   - Add regeneration module in body.brake_system
-* [18/08/08] - Revision 03 - kyunghan
+* [18/08/08] - Restructure - Kyunghan
   - Modify drive train module
   - Modify tire module
   - Modify drag force module
 """
+
 # import python lib modules
 from math import pi, sin, cos, atan
 import numpy as np
@@ -46,32 +72,7 @@ you can declare other sampling time in application as vairable ``Ts``
 
 class Mod_Body:
     """
-    Module description here
-
-    ConfigVariables:
-        * conf_rw_wheel
-        * conf_jw_body
-        * conf_brk_coef
-        * conf_acc_coef
-        * conf_veh_len
-        * ...
-
-    Submodules:
-        * Body_config:
-        * Dyn_config:
-        * Lon_driven_in:
-        * ...
-
-    Operation:
-        Description operation here::
-
-            !!!Make operation diagram here!!!
-            # Module_name(in//out)
-            Motor_control(t_mot, w_mot // des_torque)
-                >> Motor_driven(t_mot, w_mot // v_mot)
-                    >> Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics
-                >> Motor_torque_system(v_mot // des_torque)
-
+    * Body module
     """
     def __init__(self):
         self.t_mot_load = 0
@@ -85,27 +86,21 @@ class Mod_Body:
         self.Drivetrain_config()
         self.Ts_loc = globals()['Ts']
 
-    def Drivetrain_config(self, conf_veh_len = 2, conf_rd_wheel = 0.301, conf_jw_wheel = 0.1431, conf_jw_diff_in = 0.015, conf_jw_diff_out = 0.015, conf_jw_trns_out = 0.015, conf_jw_trns_in = 0.01, conf_jw_mot = 0.005,
+    def Drivetrain_config(self, conf_rd_wheel = 0.301, conf_jw_wheel = 0.1431, conf_jw_diff_in = 0.015, conf_jw_diff_out = 0.015, conf_jw_trns_out = 0.015, conf_jw_trns_in = 0.01, conf_jw_mot = 0.005,
                     conf_eff_trns = 0.96, conf_eff_diff = 0.9796, conf_eff_diff_neg = 0.9587, conf_gear = 6.058, conf_mass_veh = 1200, conf_mass_add = 0):
-        """Function overview here
+        """Drivetrain and body parameter configuration
+        Parameters not specified are declared as default values
+        If you want set a specific parameter don't use this function,
+        just type::
 
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
+            Mod_Body.conf_veh_len = 2
             ...
 
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+        Parameters:
+            Vehicle mass
+            Wheel radius
+            Momentum of inertia: shaft, wheel
+            Drive shaft efficiency, gear ratio
         """
         self.conf_veh_len = conf_veh_len
         self.conf_gear = conf_gear
@@ -135,24 +130,22 @@ class Mod_Body:
 
 
     def Lon_equivalence(self,t_mot, t_brk, t_drag):
-        """Function overview here
+        """Calculate equivalent rotational dynamics of vhielce
 
-        Functional description
+        Equivalet component: Motor + Shaft + Wheel + Vehicle
 
-        Code example wirght follows::
+        Dynamics::
 
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
+            w_vehicle_dot = (t_motor - t_drag - t_brake) / j_veh
             ...
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_shaft: shaft rotational speed [rad/s]
+            * t_mot: motor torque [Nm]
+            * t_brk: brake torque [Nm]
+            * t_drag: equivalent drag torque [Nm]
+        Return:
+            * load torque: load torque of each component [Nm]
+            * f_lon: longitudinal traction force [N]
         """
         # shaft torque calculation
         t_motor_in = t_mot * self.conf_gear
@@ -179,7 +172,7 @@ class Mod_Body:
         t_wheel_in = t_shaft_out/2
         # load torque calculation - wheel load
         t_wheel_traction_r = -t_brk_wheel-w_dot_wheel*self.conf_jw_wheel_eq_r
-        t_wheel_traction_f = (t_veh_traction - 2*t_wheel_traction_r )/2 + t_brk_wheel        
+        t_wheel_traction_f = (t_veh_traction - 2*t_wheel_traction_r )/2 + t_brk_wheel
         # load torque calculation - motor load
         t_mot_load = t_mot - w_dot_wheel*self.conf_gear*(self.conf_jw_mot + self.conf_jw_trns_in)
         self.t_mot_load = t_mot_load
@@ -193,24 +186,14 @@ class Mod_Body:
         return t_mot_load, t_shaft_in, t_shaft_out, t_wheel_in, t_wheel_traction_f, t_driven, f_lon
 
     def Driveshaft_dynamics(self, t_shaft_in, t_shaft_out, w_shaft):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        """Calculate rotational dynamics of shaft
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_shaft: shaft rotational speed [rad/s]
+            * t_shaft_in: shaft in torque = motor_out torque - mechanical loss [Nm]
+            * t_shaft_out: shaft out torque [Nm]
+            * w_shaft: previous rotational speed of shaft [rad/s]
+        Return:
+            * w_shaft: updated rotational speed of shaft [rad/s]
         """
         w_dot_shaft = (t_shaft_in - t_shaft_out)/self.conf_jw_shaft_eq
         w_shaft = w_shaft + self.Ts_loc * w_dot_shaft
@@ -219,25 +202,15 @@ class Mod_Body:
         return w_shaft
 
     def Tire_dynamics(self, t_wheel_load, t_wheel_traction_f, t_brk, w_wheel):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        """Calculate rotational dynamics of wheel
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+            * t_wheel_load: wheel in torque = shaft out torque [Nm]
+            * t_wheel_traction_f: wheel out torque to traction force [Nm]
+            * t_brk: brake torque [Nm]
+            * w_shaft: previous rotational speed of wheel [rad/s]
+        Return:
+            * w_shaft: updated rotational speed of wheel [rad/s]
         """
         t_brk_w = t_brk/4
         t_brk_w = 0
@@ -250,25 +223,14 @@ class Mod_Body:
         return w_wheel
 
     def Motor_dynamics(self, t_mot, t_mot_load, w_motor):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        """Calculate rotational dynamics of motor
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+            * t_mot: motor generated torque [Nm]
+            * t_mot_load: motor load torque to shaft [Nm]
+            * w_shaft: previous rotational speed of motor [rad/s]
+        Return:
+            * w_shaft: updated rotational speed of motor [rad/s]
         """
         w_dot_motor = (t_mot - t_mot_load)/(self.conf_jw_mot + self.conf_jw_trns_in)
         w_motor = w_motor + self.Ts_loc*w_dot_motor
@@ -279,44 +241,25 @@ class Mod_Body:
 
 class Mod_Veh:
     """
-    Module description here
 
-    ConfigVariables:
-        * conf_rw_wheel
-        * conf_jw_body
-        * conf_brk_coef
-        * conf_acc_coef
-        * conf_veh_len
-        * ...
-
-    Submodules:
-        * Body_config:
-        * Dyn_config:
-        * Lon_driven_in:
-        * ...
-
-    Initialization:
-        * Include ``powertrain``, ``drivetrain`` models
-
-    Operation:
-        Description operation here::
-
-            !!!Make operation diagram here!!!
-            # Module_name(in//out)
-            Motor_control(t_mot, w_mot // des_torque)
-                >> Motor_driven(t_mot, w_mot // v_mot)
-                    >> Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics
-                >> Motor_torque_system(v_mot // des_torque)
+    * Vehicle module: Set the ``power`` and ``body`` model when initialization
 
     """
     def __init__(self,powertrain_model,drivetrain_model):
         self.ModPower = powertrain_model
         self.ModDrive = drivetrain_model
         self.Ts_loc = globals()['Ts']
-        self.Set_initState()
+        self.Veh_init_config()
         self.Veh_config()
 
-    def Set_initState(self, x_veh = 0, y_veh = 0, s_veh = 0, n_veh = 0, psi_veh = 0, vel_veh = 0, theta_wheel = 0):
+    def Veh_init_config(self, x_veh = 0, y_veh = 0, s_veh = 0, n_veh = 0, psi_veh = 0, vel_veh = 0, theta_wheel = 0):
+        """Initialize vehicle state
+
+        State:
+            * Vehicle position on environment
+            * Velocity
+            * Heading angle
+        """
         self.pos_x_veh = x_veh
         self.pos_y_veh = y_veh
         self.pos_s_veh = s_veh
@@ -327,28 +270,21 @@ class Mod_Veh:
 
     def Veh_config(self, conf_drag_air_coef = 0, conf_add_weight = 0, conf_drag_ca = 143.06, conf_drag_cc = 0.4405,
                    conf_veh_len = 2,conf_acc_trq_fac = 82.76, conf_brk_trq_fac = 501.8, conf_motreg_max = 100):
-        """Function overview here
+        """Vehicle parameter configuration
+        Parameters not specified are declared as default values
+        If you want set a specific parameter don't use this function,
+        just type::
 
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
+            >>> Mod_Body.conf_veh_len = 2
             ...
 
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+        Parameters:
+            * Vehicle size
+            * Air drag coefficient
+            * Rolling resistance coefficient
+            * Acceleration, Brake coefficient
         """
         self.conf_drag_air_coef = conf_drag_air_coef
-        self.conf_weight_veh = conf_add_weight
         self.conf_drag_ca = conf_drag_ca
         self.conf_drag_cc = conf_drag_cc
         self.conf_brk_trq_fac = conf_brk_trq_fac
@@ -360,6 +296,16 @@ class Mod_Veh:
         self.swtRegCtl = 0
 
     def Veh_position_update(self, vel_veh = 0, the_wheel = 0):
+        """Update vehicle position on environment
+
+        Args:
+            * vel_veh: Vehicle velocity [m/s]
+            * the_wheel: Wheel angle [rad]
+        Return:
+            * x, y position: Absolute vehicle coordinate [m]
+            * s, n position: Road relative vehicle position [m]
+            * psi_veh: Vehicle heading angle [rad]
+        """
         veh_len = self.ModDrive.conf_veh_len
         ang_veh = the_wheel + self.psi_veh
         x_dot = vel_veh*cos(ang_veh)
@@ -375,6 +321,19 @@ class Mod_Veh:
         return [self.pos_x_veh, self.pos_y_veh, self.pos_s_veh, self.pos_n_veh, self.psi_veh]
 
     def Veh_driven(self, u_acc, u_brake, u_steer = 0):
+        """Simulate vehicle behavior according to driver's input
+
+        Args:
+            * u_acc: Acceleration pedal position [-]
+            * u_brake: Brake pedal position [-]
+            * u_steer: Steering wheel angle [-]
+        Return:
+            * vel_veh: Vehicle velocity [m/s]
+            * the_wheel: Wheel heading angle [rad]
+        Include:
+            * ``Mod_Veh(Veh_lon_driven,Veh_lat_driven)``: Simulate vehicle behavior
+
+        """
         # Longitudinal driven
         vel_veh = self.Veh_lon_driven(u_acc, u_brake)
         # Lateral driven
@@ -382,6 +341,27 @@ class Mod_Veh:
         return vel_veh, the_wheel
 
     def Veh_lon_driven(self, u_acc, u_brake):
+        """Simulate longitudinal vehicle behavior according to driver's input
+
+        Calculate total drag force from Drag_system in vehicle module
+
+        Determine driven force from Acc_system and Brake_system in vehicle module
+
+        Drive Lon_equivalence function in body module
+
+        Args:
+            * u_acc: Acceleration pedal position [-]
+            * u_brake: Brake pedal position [-]
+        Return:
+            * veh_vel: Vehicle velocity [m/s]
+            * s, n position: Road relative vehicle position [m]
+            * psi_veh: Vehicle heading angle [rad]
+        Include:
+            * ``Mod_Veh(Acc_system, Brake_system, Drag_system, Veh_lon_dynamics)``: Determine driven torque
+            * ``Mod_Body(Lon_equivalence)``: Calculate vehicle rotational dynamics
+            * ``Mod_Power(Motor_driven)``: Determine motor driven torque
+
+        """
         w_mot = self.ModDrive.w_motor
         w_shaft = self.ModDrive.w_shaft
         w_wheel = self.ModDrive.w_wheel
@@ -405,64 +385,83 @@ class Mod_Veh:
         return self.vel_veh
 
     def Veh_lon_dynamics(self, f_lon, f_drag, vel_veh):
+        """Calculate longitudinal vehicle dynamics
+
+        Equivalet component: Motor + Shaft + Wheel + Vehicle
+
+        Dynamics::
+
+            veh_acc = (f_lon - f_drag) / m_veh
+            ...
+
+        Args:
+            * f_lon: longitudinal driven force from Lon_equivalence [N]
+            * f_drag: longitudinal drag force from Drag_system, Brake_system [N]
+        Return:
+            * veh_vel: vehicle velocity [m/s]
+        """
         veh_acc = (f_lon - f_drag)/self.conf_veh_mass
         vel_veh_calc = vel_veh + self.Ts_loc*veh_acc
         vel_veh = sorted((0., vel_veh_calc, 1000.))[1]
         return vel_veh, veh_acc
 
     def Veh_lat_driven(self, u_steer):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        """Simulate lateral vehicle behavior according to driver's input
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+            * u_steer: steering input [-]
+        Return:
+            * the_wheel: wheel heading angle [rad]
+        Include:
+            * ``Mod_Veh(Veh_lat_dynamics)``: Calculate wheel dynamics
         """
         self.the_wheel = self.Veh_lat_dynamics(self.the_wheel, u_steer)
         return self.the_wheel
 
     def Veh_lat_dynamics(self, the_wheel, u_steer):
-        """Function overview here
+        """Calculate lateral vehicle dynamics
 
-        Functional description
+        Dynamics::
 
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
+            the_wheel_dot = (u_steer - the_wheel) / lat_dynamic_coeff
             ...
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+            * u_steer: steering input of driver [-]
+            * the_wheel: longitudinal drag force from Drag_system, Brake_system [N]
+        Return:
+            * the_wheel: vehicle velocity [m/s]
         """
         the_wheel = the_wheel + self.Ts_loc/0.2*(u_steer - the_wheel)
         return the_wheel
 
     def Acc_system(self, u_acc):
+        """Determine desired motor torque
+
+        Args:
+            * u_acc: acceleration pedal of driver [-]
+        Return:
+            * t_mot_des: desired motor torque [Nm]
+        """
         self.t_mot_des = u_acc * self.conf_acc_trq_fac
         return self.t_mot_des
 
     def Brake_system(self, u_brake, t_reg_set = 0):
+        """Determine brake torque
+
+        Regen control::
+
+            swtRegCtl = 0 # Meachanical braking
+            swtRegCtl = 1 # Transfer braking torque to regenerative motor torque
+            swtRegCtl = 2 # Set the specific regenerative motor torque
+
+        Args:
+            * u_brake: acceleration pedal of driver [-]
+            * t_reg_set: Regenerative torque set [-]
+        Return:
+            * t_brake: Braking torque [Nm]
+            * t_mot_reg: Regenerative motor torque [Nm]
+        """
 #        if self.w_wheel <= 0.01:
 #            t_brake_set = 0
 #        else:
@@ -488,6 +487,20 @@ class Mod_Veh:
         return t_brake, t_mot_reg
 
     def Drag_system(self, vel_veh):
+        """Calculate drag torque
+
+        Air drag::
+        f_drag_air = 0.5*1.25*self.conf_drag_air_coef*vel_veh**2
+
+        Rolling resistance::
+        f_drag_roll = self.conf_drag_ca + self.conf_drag_cc*vel_veh**2
+
+        Args:
+            * vel_veh: vehicle velocity [m/s]
+        Return:
+            * t_drag: total drag torque [Nm]
+            * f_drag: total drag force [N]
+        """
         f_drag_roll = self.conf_drag_ca + self.conf_drag_cc*vel_veh**2
         f_drag_air = 0.5*1.25*self.conf_drag_air_coef*vel_veh**2
         f_drag = f_drag_roll + f_drag_air

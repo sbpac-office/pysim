@@ -153,18 +153,27 @@
 <span class="sd">Simulation model : Power</span>
 <span class="sd">==============================================================</span>
 
-<span class="sd">Author</span>
-<span class="sd">~~~~~~~~~~~~~</span>
-<span class="sd">* kyunghan &lt;kyunghah.min@gmail.com&gt;</span>
-
 <span class="sd">Description</span>
 <span class="sd">~~~~~~~~~~~~~</span>
-<span class="sd">* Powertrain class</span>
-<span class="sd">  - Motor class</span>
-<span class="sd">  - Drivetrain class</span>
-<span class="sd">  - Battery class</span>
-<span class="sd">* Powertrain &lt;- Motor,Battery (Composition relationship)</span>
-<span class="sd">* Motor &lt;-&gt; Battery (Aggregation relationship)</span>
+<span class="sd">* Simulate power source of EV</span>
+
+<span class="sd">Modules summary</span>
+<span class="sd">~~~~~~~~~~~~~~~~~</span>
+<span class="sd">* Motor module - calculate mechanical loss and efficiency of motor</span>
+<span class="sd">    * Motor_config - configure motor parameters</span>
+<span class="sd">    * Motor_init_config - configure initial motor state</span>
+<span class="sd">    * Motor_Power_system - calculate power loss based on motor efficiency</span>
+<span class="sd">        * Motor_Elec_system - calculate required motor current for generated torque</span>
+<span class="sd">* Battery module - calculate battery power consumption</span>
+<span class="sd">    * Battery_config - configure battery parameters</span>
+<span class="sd">    * Battery_init_config - configure initial battery state</span>
+<span class="sd">    * Calc_EnergyCons - calculate battey consumption current</span>
+<span class="sd">        * Calc_Voc - calculate open circuit voltage (Voc)</span>
+<span class="sd">        * Calc_SOC - calculate battery SOC</span>
+<span class="sd">    * Calc_Vterm - calculate battery termination voltage (Vterm)</span>
+
+<span class="sd">* Power module - contain ``motor module`` and ``battery module``</span>
+<span class="sd">    * Motor_driven - calculate motor driven and battery consumption (include ``Mod_Power(Motor_Power_system)``, ``Mod_Battery(Calc_Current)``)</span>
 
 <span class="sd">Update</span>
 <span class="sd">~~~~~~~~~~~~~</span>
@@ -176,6 +185,9 @@
 <span class="sd">* [18/06/11] - Modification - kyunghan</span>
 <span class="sd">  - Modify drivetrain module to body module</span>
 <span class="sd">  - Modify model configurations</span>
+<span class="sd">* [18/10/08] - Modification - kyunghan</span>
+<span class="sd">  - Move the motor_driven function to power module</span>
+<span class="sd">  - Battery module restructure</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="c1"># simulation sampling time</span>
 <span class="n">Ts</span> <span class="o">=</span> <span class="mf">0.01</span>
@@ -186,34 +198,28 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pysim.sub_util.sub_type_def</span> <span class="k">import</span> <span class="n">type_pid_controller</span>
-<span class="c1">#%% Motor class</span>
+
 <div class="viewcode-block" id="Mod_Motor"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Motor">[docs]</a><span class="k">class</span> <span class="nc">Mod_Motor</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    * Motor module</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">v_mot</span> <span class="o">=</span> <span class="mi">320</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">i_mot</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">p_mot_mech</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">p_mot_loss</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">p_mot_elec</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Motor_init_config</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Motor_config</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">Ts_loc</span> <span class="o">=</span> <span class="n">Ts</span>
 
 <div class="viewcode-block" id="Mod_Motor.Motor_config"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Motor.Motor_config">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss_mech_C0</span> <span class="o">=</span> <span class="mf">0.0206</span><span class="p">,</span> <span class="n">loss_mech_C1</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.135e-5</span><span class="p">,</span> <span class="n">loss_copper_C0</span> <span class="o">=</span> <span class="mf">0.2034</span><span class="p">,</span> <span class="n">loss_stray_C0</span> <span class="o">=</span> <span class="mf">3.352e-6</span><span class="p">,</span> <span class="n">loss_stray_C1</span> <span class="o">=</span> <span class="o">-</span><span class="mf">2.612e-9</span><span class="p">,</span> <span class="n">loss_iron_C0</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span> <span class="n">loss_iron_C1</span> <span class="o">=</span> <span class="mf">1.55</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Motor parameter configuration</span>
-
 <span class="sd">        Parameters not specified are declared as default values</span>
-
 <span class="sd">        If you want set a specific parameter don&#39;t use this function,</span>
 <span class="sd">        just type::</span>
 
 <span class="sd">            &gt;&gt;&gt; Mod_PowerTrain.conf_rm_mot = 0.2</span>
 <span class="sd">            ...</span>
 
-<span class="sd">        Args:</span>
+<span class="sd">        Parameters:</span>
 <span class="sd">            Motor parameter values, default values are setted</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">loss_mech_C0</span> <span class="o">=</span> <span class="n">loss_mech_C0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loss_mech_C1</span> <span class="o">=</span> <span class="n">loss_mech_C1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loss_copper_C0</span> <span class="o">=</span> <span class="n">loss_copper_C0</span>
@@ -222,7 +228,34 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">loss_iron_C0</span> <span class="o">=</span> <span class="n">loss_iron_C0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loss_iron_C1</span> <span class="o">=</span> <span class="n">loss_iron_C1</span></div>
 
+<div class="viewcode-block" id="Mod_Motor.Motor_init_config"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Motor.Motor_init_config">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_init_config</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize motor state</span>
+
+<span class="sd">        State:</span>
+<span class="sd">            * Motor voltage and current</span>
+<span class="sd">            * Motor rotational speed</span>
+<span class="sd">            * Motor torque</span>
+<span class="sd">            * Motor power loss</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v_mot</span> <span class="o">=</span> <span class="mi">320</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i_mot</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_mot_mech</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_mot_loss</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_mot_elec</span> <span class="o">=</span> <span class="mi">0</span></div>
+
 <div class="viewcode-block" id="Mod_Motor.Motor_Power_system"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Motor.Motor_Power_system">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_Power_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t_mot</span><span class="p">,</span> <span class="n">w_mot</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate required motor power with motor power loss</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * t_mot: motor torque [Nm]</span>
+<span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
+<span class="sd">        Return:</span>
+<span class="sd">            * p_mot_elec: electric requried motor power [W??]</span>
+<span class="sd">        Include:</span>
+<span class="sd">            * ``Mod_Motor(Motor_Elec_system)``: Calculate motor electric current according to motor power</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">p_mot_mech</span> <span class="o">=</span> <span class="n">t_mot</span> <span class="o">*</span> <span class="n">w_mot</span>
         <span class="n">w_mot</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="n">w_mot</span><span class="p">,</span><span class="mi">10000</span><span class="p">])[</span><span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">p_mot_loss</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loss_mech_C0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_mech_C1</span><span class="o">*</span><span class="n">w_mot</span><span class="p">)</span><span class="o">*</span><span class="n">w_mot</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_copper_C0</span><span class="o">*</span><span class="n">t_mot</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loss_stray_C0</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">loss_stray_C1</span><span class="o">*</span><span class="n">w_mot</span><span class="p">)</span><span class="o">*</span><span class="n">w_mot</span><span class="o">**</span><span class="mi">2</span><span class="o">*</span><span class="n">t_mot</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_iron_C0</span><span class="o">*</span><span class="n">w_mot</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">loss_iron_C1</span><span class="o">*</span><span class="n">t_mot</span><span class="o">**</span><span class="mi">2</span>
@@ -231,116 +264,166 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_mot_elec</span></div>
 
 <div class="viewcode-block" id="Mod_Motor.Motor_Elec_system"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Motor.Motor_Elec_system">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_Elec_system</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_mot_elec</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate motor electric current according to motor power</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * p_mot_elec: electric requried motor power [W]</span>
+<span class="sd">        Return:</span>
+<span class="sd">            * i_mot: electric current [A]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">i_mot</span> <span class="o">=</span> <span class="n">p_mot_elec</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">v_mot</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">i_mot</span></div></div>
 
 <span class="c1">#%% Battery class</span>
 <div class="viewcode-block" id="Mod_Battery"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery">[docs]</a><span class="k">class</span> <span class="nc">Mod_Battery</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    * Battery module</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Battery Internal state</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conf_Voc</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Open circuit voltage [V]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conf_Etot</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Total energy-capacitor (vehicle specification) Q : 180[Ah] =&gt; E = QV =&gt; E = 180 * 3600 * 356 [J]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conf_MaxPower</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Allowable output power (vehicle specification) 150[kW]</span>
-        <span class="c1"># Variable state (need for optimization)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conf_R0</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># internal resistor =&gt; regulate steady-state response</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conf_SOC_init</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># 70[%]</span>
-        <span class="c1"># regulate short time dynamic reesponse ==&gt; Tau_short_time = R1 * C1 [s]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">R1_a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">R1_b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">R1_c</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">R1</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># internal resistor1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">C1_a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">C1_b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">C1_c</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">C1</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># internal capacitor1</span>
-        <span class="c1"># regulate long time dynamic reesponse ==&gt; Tau_long_time = R2 * C2[s]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">R2_a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">R2_b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">R2_c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">R2</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># internal resistor2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">C2_a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">C2_b</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">C2_c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">C2</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># internal capacitor2</span>
-        <span class="c1"># Calculation state</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Voc_rate</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1"># ==&gt; Voc = Voc(norminal) * Voc_rate</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Voc</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Additional power consumption [0.1 W]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Battery_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Battery_init_config</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Mod_Battery.Battery_config"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Battery_config">[docs]</a>    <span class="k">def</span> <span class="nf">Battery_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Voc_base_voltage</span> <span class="o">=</span> <span class="mf">356.0</span><span class="p">,</span> <span class="n">E_tot</span> <span class="o">=</span> <span class="mf">230400000.0</span><span class="p">,</span> <span class="n">MaxPower</span> <span class="o">=</span> <span class="mf">150000.0</span><span class="p">,</span>
+                       <span class="n">R0</span> <span class="o">=</span> <span class="mf">0.0016</span><span class="p">,</span> <span class="n">R1_a</span><span class="o">=</span><span class="mf">76.5218</span><span class="p">,</span> <span class="n">R1_b</span><span class="o">=-</span><span class="mf">7.9563</span><span class="p">,</span> <span class="n">R1_c</span><span class="o">=</span><span class="mf">23.8375</span><span class="p">,</span>
+                       <span class="n">C1_a</span> <span class="o">=</span> <span class="o">-</span><span class="mf">649.8350</span><span class="p">,</span> <span class="n">C1_b</span> <span class="o">=</span> <span class="o">-</span><span class="mf">64.2924</span><span class="p">,</span> <span class="n">C1_c</span> <span class="o">=</span> <span class="mf">12692.1946</span><span class="p">,</span> <span class="n">R2_a</span> <span class="o">=</span> <span class="mf">5.2092</span><span class="p">,</span> <span class="n">R2_b</span> <span class="o">=</span> <span class="o">-</span><span class="mf">35.2367</span><span class="p">,</span> <span class="n">R2_c</span> <span class="o">=</span> <span class="mf">124.9467</span><span class="p">,</span> <span class="n">C2_a</span> <span class="o">=</span> <span class="o">-</span><span class="mf">78409.2788</span><span class="p">,</span>
+                       <span class="n">C2_b</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.0131</span><span class="p">,</span> <span class="n">C2_c</span> <span class="o">=</span> <span class="mf">30802.62582</span><span class="p">,</span> <span class="n">Int_E</span> <span class="o">=</span> <span class="mf">161280000.0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Configure battery parameters</span>
+
+<span class="sd">        Parameter:</span>
+<span class="sd">            * Base open circuit voltage</span>
+<span class="sd">            * Total energy</span>
+<span class="sd">            * Maximum power</span>
+<span class="sd">            * Internal resistance</span>
+<span class="sd">            * SOC table</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_Voc_base</span> <span class="o">=</span> <span class="n">Voc_base_voltage</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_Etot</span> <span class="o">=</span> <span class="n">E_tot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_MaxPower</span> <span class="o">=</span> <span class="n">MaxPower</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_R0</span> <span class="o">=</span> <span class="n">R0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_R1_a</span> <span class="o">=</span> <span class="n">R1_a</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conf_R1_b</span> <span class="o">=</span> <span class="n">R1_b</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conf_R1_c</span> <span class="o">=</span> <span class="n">R1_c</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_C1_a</span> <span class="o">=</span> <span class="n">C1_a</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conf_C1_b</span> <span class="o">=</span> <span class="n">C1_b</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conf_C1_c</span> <span class="o">=</span> <span class="n">C1_c</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_R2_a</span> <span class="o">=</span> <span class="n">R2_a</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conf_R2_b</span> <span class="o">=</span> <span class="n">R2_b</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conf_R2_c</span> <span class="o">=</span> <span class="n">R2_c</span><span class="p">;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_C2_a</span> <span class="o">=</span> <span class="n">C2_a</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conf_C2_b</span> <span class="o">=</span> <span class="n">C2_b</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">conf_C2_c</span> <span class="o">=</span> <span class="n">C2_c</span><span class="p">;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">soc_data_value</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">6.25</span><span class="p">,</span>  <span class="mf">31.25</span><span class="p">,</span>  <span class="mf">62.5</span><span class="p">,</span>   <span class="mf">93.75</span><span class="p">,</span> <span class="mf">100.00</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">soc_data_index_Voc_rate</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.625</span><span class="p">,</span> <span class="mf">0.8125</span><span class="p">,</span>  <span class="mf">0.875</span><span class="p">,</span>  <span class="mf">1.00</span><span class="p">,</span>   <span class="mf">1.0915</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_Battery.Battery_init_config"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Battery_init_config">[docs]</a>    <span class="k">def</span> <span class="nf">Battery_init_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">SOC_init</span> <span class="o">=</span> <span class="mi">70</span><span class="p">,</span> <span class="n">power_additional_set</span> <span class="o">=</span> <span class="mi">500</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Configure initial battery states</span>
+
+<span class="sd">        State:</span>
+<span class="sd">            * Open circuit voltage</span>
+<span class="sd">            * Termination voltage</span>
+<span class="sd">            * Internal voltage, currentm, energy</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">power_additional</span> <span class="o">=</span> <span class="n">power_additional_set</span> <span class="c1"># [0.1 W]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span> <span class="o">=</span> <span class="n">SOC_init</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Voc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_Voc_base</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Current</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Vterm</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V1</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V2</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Consume_power</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Internal_Energy</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="c1"># Output state</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Current</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V_terminal</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Battery_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Internal_Energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_Etot</span> <span class="o">*</span> <span class="n">SOC_init</span><span class="o">/</span><span class="mi">100</span></div>
 
-<div class="viewcode-block" id="Mod_Battery.Battery_config"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Battery_config">[docs]</a>    <span class="k">def</span> <span class="nf">Battery_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Voc</span><span class="o">=</span><span class="mf">356.0</span><span class="p">,</span> <span class="n">Etot</span><span class="o">=</span><span class="mf">230400000.0</span><span class="p">,</span> <span class="n">MaxPower</span><span class="o">=</span><span class="mf">150000.0</span><span class="p">,</span> <span class="n">R0</span><span class="o">=</span><span class="mf">0.0016</span><span class="p">,</span> <span class="n">SOC_init</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span> <span class="n">R1_a</span><span class="o">=</span><span class="mf">76.5218</span><span class="p">,</span> <span class="n">R1_b</span><span class="o">=-</span><span class="mf">7.9563</span><span class="p">,</span> <span class="n">R1_c</span><span class="o">=</span><span class="mf">23.8375</span><span class="p">,</span>
-                       <span class="n">C1_a</span><span class="o">=-</span><span class="mf">649.8350</span><span class="p">,</span> <span class="n">C1_b</span><span class="o">=-</span><span class="mf">64.2924</span><span class="p">,</span> <span class="n">C1_c</span><span class="o">=</span><span class="mf">12692.1946</span><span class="p">,</span> <span class="n">R2_a</span><span class="o">=</span><span class="mf">5.2092</span><span class="p">,</span> <span class="n">R2_b</span><span class="o">=-</span><span class="mf">35.2367</span><span class="p">,</span> <span class="n">R2_c</span><span class="o">=</span><span class="mf">124.9467</span><span class="p">,</span> <span class="n">C2_a</span><span class="o">=-</span><span class="mf">78409.2788</span><span class="p">,</span>
-                       <span class="n">C2_b</span><span class="o">=-</span><span class="mf">0.0131</span><span class="p">,</span> <span class="n">C2_c</span><span class="o">=</span><span class="mf">30802.62582</span><span class="p">,</span> <span class="n">Int_E</span><span class="o">=</span><span class="mf">161280000.0</span><span class="p">,</span> <span class="n">V1</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">V2</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conf_Voc</span> <span class="o">=</span> <span class="n">Voc</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conf_Etot</span> <span class="o">=</span> <span class="n">Etot</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conf_MaxPower</span> <span class="o">=</span> <span class="n">MaxPower</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conf_SOC_init</span> <span class="o">=</span> <span class="n">SOC_init</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span> <span class="o">=</span> <span class="n">SOC_init</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conf_R0</span> <span class="o">=</span> <span class="n">R0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">R1_a</span> <span class="o">=</span> <span class="n">R1_a</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">R1_b</span> <span class="o">=</span> <span class="n">R1_b</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">R1_c</span> <span class="o">=</span> <span class="n">R1_c</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">C1_a</span> <span class="o">=</span> <span class="n">C1_a</span><span class="p">;</span>      <span class="bp">self</span><span class="o">.</span><span class="n">C1_b</span> <span class="o">=</span> <span class="n">C1_b</span><span class="p">;</span>       <span class="bp">self</span><span class="o">.</span><span class="n">C1_c</span> <span class="o">=</span> <span class="n">C1_c</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">R2_a</span> <span class="o">=</span> <span class="n">R2_a</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">R2_b</span> <span class="o">=</span> <span class="n">R2_b</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">R2_c</span> <span class="o">=</span> <span class="n">R2_c</span><span class="p">;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">C2_a</span> <span class="o">=</span> <span class="n">C2_a</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">C2_b</span> <span class="o">=</span> <span class="n">C2_b</span><span class="p">;</span>        <span class="bp">self</span><span class="o">.</span><span class="n">C2_c</span> <span class="o">=</span> <span class="n">C2_c</span><span class="p">;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V1</span> <span class="o">=</span> <span class="n">V1</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">V2</span> <span class="o">=</span> <span class="n">V2</span><span class="p">;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Internal_Energy</span> <span class="o">=</span> <span class="n">Int_E</span></div>
+<div class="viewcode-block" id="Mod_Battery.Calc_Voc"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Calc_Voc">[docs]</a>    <span class="k">def</span> <span class="nf">Calc_Voc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_soc</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate open circuit voltage using interpolation table</span>
 
-<div class="viewcode-block" id="Mod_Battery.Calc_Voc_rate"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Calc_Voc_rate">[docs]</a>    <span class="k">def</span> <span class="nf">Calc_Voc_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
-        <span class="n">SOC</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">6.25</span><span class="p">,</span>  <span class="mf">31.25</span><span class="p">,</span>  <span class="mf">62.5</span><span class="p">,</span>   <span class="mf">93.75</span><span class="p">,</span> <span class="mf">100.00</span><span class="p">]</span>
-        <span class="n">Voc_rate</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.625</span><span class="p">,</span> <span class="mf">0.8125</span><span class="p">,</span>  <span class="mf">0.875</span><span class="p">,</span>  <span class="mf">1.00</span><span class="p">,</span>   <span class="mf">1.0915</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Voc_rate</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span><span class="n">SOC</span><span class="p">,</span><span class="n">Voc_rate</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Voc_rate</span></div>
+<span class="sd">        Args:</span>
+<span class="sd">            * input_soc: current SOC [%]</span>
+<span class="sd">        Return:</span>
+<span class="sd">            * Voc: battery open circuit voltage [V]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Voc_rate</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">input_soc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_data_value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_data_index_Voc_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Voc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_Voc_base</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Voc_rate</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Voc</span></div>
 
-<div class="viewcode-block" id="Mod_Battery.Calc_Current"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Calc_Current">[docs]</a>    <span class="k">def</span> <span class="nf">Calc_Current</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Motor_Net_Power</span><span class="p">,</span> <span class="n">AccPower</span><span class="o">=</span><span class="mi">500</span><span class="p">):</span> <span class="c1"># AccPower : Air conditionor&#39;s consum power and so on 50[W]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Voc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_Voc</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Calc_Voc_rate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SOC</span><span class="p">)</span>
+<div class="viewcode-block" id="Mod_Battery.Calc_SOC"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Calc_SOC">[docs]</a>    <span class="k">def</span> <span class="nf">Calc_SOC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate battery state of charge</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">R1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">R1_a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R1_b</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">R1_c</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">C1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">C1_a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">C1_b</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">C1_c</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">R2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">R2_a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R2_b</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">R2_c</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">C2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">C2_a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">C2_b</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">C2_c</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">Consume_power</span> <span class="o">=</span> <span class="n">AccPower</span> <span class="o">+</span> <span class="n">Motor_Net_Power</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">Current</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Voc</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Voc</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="mi">4</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_R0</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">Consume_power</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_R0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Calc_SOC</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Current</span></div>
-
-<div class="viewcode-block" id="Mod_Battery.Calc_SOC"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Calc_SOC">[docs]</a>    <span class="k">def</span> <span class="nf">Calc_SOC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V_terminal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Voc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Current</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_R0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">V1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">V2</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V1</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Current</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">C1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">V1</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">C1</span><span class="p">))</span><span class="o">*</span><span class="n">Ts</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V2</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Current</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">C2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">V2</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">C2</span><span class="p">))</span><span class="o">*</span><span class="n">Ts</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">Internal_Energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Internal_Energy</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Voc</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Current</span> <span class="o">*</span> <span class="n">Ts</span>
+<span class="sd">        Args:</span>
+<span class="sd">            * current: battery current consumption [A]</span>
+<span class="sd">        Return:</span>
+<span class="sd">            * SOC: State of charge [%]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V1</span> <span class="o">+</span> <span class="p">(</span><span class="n">current</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">C1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">V1</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R1</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">C1</span><span class="p">)</span> <span class="p">)</span><span class="o">*</span><span class="n">Ts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V2</span> <span class="o">+</span> <span class="p">(</span><span class="n">current</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">C2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">V2</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">R2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">C2</span><span class="p">)</span> <span class="p">)</span><span class="o">*</span><span class="n">Ts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Internal_Energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Internal_Energy</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Voc</span> <span class="o">*</span> <span class="n">current</span> <span class="o">*</span> <span class="n">Ts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Internal_Energy</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_Etot</span> <span class="o">*</span> <span class="mi">100</span>
-
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span></div>
 
-<div class="viewcode-block" id="Mod_Battery.Print_States"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Print_States">[docs]</a>    <span class="k">def</span> <span class="nf">Print_States</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">V_terminal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Internal_Energy</span><span class="p">,</span>  <span class="bp">self</span><span class="o">.</span><span class="n">Voc</span><span class="p">]</span></div></div>
+<div class="viewcode-block" id="Mod_Battery.Calc_Vterm"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Calc_Vterm">[docs]</a>    <span class="k">def</span> <span class="nf">Calc_Vterm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">V1</span><span class="p">,</span> <span class="n">V2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate battery termination voltage</span>
 
-<span class="c1">#%% Powertrain class</span>
+<span class="sd">        Arg:</span>
+<span class="sd">            * V1: battery internal voltage 1 [V]</span>
+<span class="sd">            * V1: battery internal voltage 2 [V]</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">            * Vterm: termination voltage [V]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Vterm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Voc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Current</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_R0</span> <span class="o">-</span> <span class="n">V1</span> <span class="o">-</span> <span class="n">V2</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Vterm</span></div>
+
+<div class="viewcode-block" id="Mod_Battery.Calc_EnergyCons"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Battery.Calc_EnergyCons">[docs]</a>    <span class="k">def</span> <span class="nf">Calc_EnergyCons</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Motor_Net_Power</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate energy consumption according to desired motor torque</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * Motor_Net_Power: motor required power [W]</span>
+<span class="sd">        Return:</span>
+<span class="sd">            * Current: battery current consumption [A]</span>
+<span class="sd">        Include:</span>
+<span class="sd">            * ``Mod_Battery(Calc_Voc)``: Calculate battery open circuit voltage</span>
+<span class="sd">            * ``Mod_Battery(Calc_SOC)``: Calculate battery SOC</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Voc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Calc_Voc</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SOC</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">R1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_R1_a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_R1_b</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_R1_c</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">C1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_C1_a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_C1_b</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_C1_c</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">R2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_R2_a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_R2_b</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_R2_c</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">C2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_C2_a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_C2_b</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">SOC</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_C2_c</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Consume_power</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_additional</span> <span class="o">+</span> <span class="n">Motor_Net_Power</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Current</span> <span class="o">=</span> <span class="p">(</span><span class="n">Voc</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">Voc</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">4</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_R0</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Consume_power</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_R0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Calc_SOC</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Current</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Current</span></div></div>
+
+<span class="c1">## Powertrain class</span>
+
 <div class="viewcode-block" id="Mod_Power"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Power">[docs]</a><span class="k">class</span> <span class="nc">Mod_Power</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    * Power module: Set the ``motor`` and ``battery`` model when initialization</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Mod_Motor_loc</span> <span class="o">=</span> <span class="n">Mod_Motor</span><span class="p">(),</span> <span class="n">Mod_Battery_loc</span> <span class="o">=</span> <span class="n">Mod_Battery</span><span class="p">()):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ModMotor</span> <span class="o">=</span> <span class="n">Mod_Motor_loc</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ModBattery</span> <span class="o">=</span> <span class="n">Mod_Battery_loc</span>
 
 <div class="viewcode-block" id="Mod_Power.Motor_driven"><a class="viewcode-back" href="../../../pysim.models.model_power.html#pysim.models.model_power.Mod_Power.Motor_driven">[docs]</a>    <span class="k">def</span> <span class="nf">Motor_driven</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">torque_set</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">w_drivtrain</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
-        <span class="c1"># Elec motor model: Motor torque --&gt; Mech motor model: Motor speed --&gt; Drive shaft model: Load torque</span>
-        <span class="sd">&quot;&quot;&quot;Motor driven function</span>
-
-<span class="sd">        Generate motor output(torque, speed) and load torque according to input voltage and wheel speed (shaft speed = wheel speed)</span>
-
-<span class="sd">        Contain theree modules ``Elecic dynamics``, ``Menahicla dynamics``, ``Shaft dynamics``</span>
+        <span class="sd">&quot;&quot;&quot;Simulate motor driven function</span>
+<span class="sd">        Calculate battery power consumption and regeneration according to current motor torque and rotational speed</span>
+<span class="sd">        Include motor and battery modules</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            * v_in: motor input voltage [V]</span>
+<span class="sd">            * torque_set: generated motor torque set [Nm]</span>
 <span class="sd">            * w_shaft: rotational speed of drive shaft from body model [rad/s]</span>
 
-<span class="sd">        returns:</span>
+<span class="sd">        Returns:</span>
 <span class="sd">            * t_mot: motor torque [Nm]</span>
 <span class="sd">            * w_mot: motor rotational speed [rad/s]</span>
 <span class="sd">            * t_load: load torque from body model [Nm]</span>
+
+<span class="sd">        Include:</span>
+<span class="sd">            * ``Mod_Motor(Motor_Power_system)``: Calculate required electric power for desired torque</span>
+<span class="sd">            * ``Mod_Battery(Calc_EnergyCons)``: Calculate electric power consumption</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span> <span class="o">=</span> <span class="n">torque_set</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span> <span class="o">=</span> <span class="n">w_drivtrain</span>
         <span class="n">p_mot_elec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ModMotor</span><span class="o">.</span><span class="n">Motor_Power_system</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ModBattery</span><span class="o">.</span><span class="n">Calc_Current</span><span class="p">(</span><span class="n">p_mot_elec</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ModBattery</span><span class="o">.</span><span class="n">Calc_EnergyCons</span><span class="p">(</span><span class="n">p_mot_elec</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_mot</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_mot</span></div></div>
 </pre></div>
 

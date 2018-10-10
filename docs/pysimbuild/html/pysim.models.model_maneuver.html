@@ -1,0 +1,615 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pysim models - maneuver model &mdash; pysim 0.9 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="pysim models - vehicle model" href="pysim.models.model_vehicle.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pysim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pysim.html">pysim package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pysim.html#pysim-pakcage-overview">pysim pakcage overview</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pysim.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pysim.models.html">pysim models</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pysim.models.html#simulation-models">simulation models</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="pysim.models.html#subpackages">Subpackages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pysim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="pysim.html">pysim package</a> &raquo;</li>
+        
+          <li><a href="pysim.models.html">pysim models</a> &raquo;</li>
+        
+      <li>pysim models - maneuver model</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/pysim.models.model_maneuver.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pysim.models.model_maneuver">
+<span id="pysim-models-maneuver-model"></span><h1>pysim models - maneuver model<a class="headerlink" href="#module-pysim.models.model_maneuver" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="simulation-model-maneuver">
+<h2>Simulation model : Maneuver<a class="headerlink" href="#simulation-model-maneuver" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="description">
+<h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Simulate driver behavior</li>
+</ul>
+</div>
+<div class="section" id="modules-summary">
+<h3>Modules summary<a class="headerlink" href="#modules-summary" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>Driver module - driver characteristics</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>set_char - set parameters according to driver characteristics</dt>
+<dd><ul class="first last">
+<li>set_driver_param - set parameters</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Behavior module - contain <code class="docutils literal notranslate"><span class="pre">driver</span> <span class="pre">module</span></code> and simulate driver's behavior</dt>
+<dd><ul class="first last">
+<li>Driver_set - set driver control parameter from determined driver module</li>
+<li>Maneuver_config - set maneuver configuration</li>
+<li><dl class="first docutils">
+<dt>Lon_behavior - determine longitudinal behavior</dt>
+<dd><ul class="first last">
+<li>Static_state_recog - longitudinal state recognition for static objectives</li>
+<li>Dynamic_state_recog - longitudinal state recognition for dynamic objectives</li>
+<li>Lon_vel_set - determine longitudinal velocity set point</li>
+<li>Lon_control - control acceleration and brake pedal for velocity set point</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Lat_behavior - determine lateral behavior</dt>
+<dd><ul class="first last">
+<li>Lateral_state_recog - lateral state recognition for road offset, heading angle</li>
+<li>Lat_control - control steering for road offset, heading angle</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="update">
+<h3>Update<a class="headerlink" href="#update" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>[18/05/31] - Initial release - Kyunghan</li>
+<li>[18/06/05] - Modification of lon control - Kyunghan</li>
+</ul>
+<dl class="class">
+<dt id="pysim.models.model_maneuver.Mod_Behavior">
+<em class="property">class </em><code class="descclassname">pysim.models.model_maneuver.</code><code class="descname">Mod_Behavior</code><span class="sig-paren">(</span><em>Driver</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<ul class="simple">
+<li>Behavior module: Set the <code class="docutils literal notranslate"><span class="pre">driver</span></code> model when initialization</li>
+</ul>
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Behavior.Drver_set">
+<code class="descname">Drver_set</code><span class="sig-paren">(</span><em>DriverSet</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior.Drver_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior.Drver_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Arrange driver parameters for behavior controller</p>
+<p>Define PID controller for velocity, offset, yaw</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>DriverSet: driver parameter set</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Behavior.Dynamic_state_recog">
+<code class="descname">Dynamic_state_recog</code><span class="sig-paren">(</span><em>pre_veh_speed</em>, <em>pre_veh_reldis=250</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior.Dynamic_state_recog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior.Dynamic_state_recog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Daynamic state recognition for driving conditions</p>
+<p>Determine current longitudinal state for preceding vehicle</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>pre_veh_speed: Velocity of preceding vehicle [m/s]</li>
+<li>pre_veh_reldis: Relative distance of preceding vehicle [m]</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last simple">
+<li><dl class="first docutils">
+<dt>stDynamic: Dynamic state</dt>
+<dd><ul class="first last">
+<li>Cf: Car-following state</li>
+<li>Cruise: No specific object</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Behavior.Lat_behavior">
+<code class="descname">Lat_behavior</code><span class="sig-paren">(</span><em>veh_position_x</em>, <em>veh_position_y</em>, <em>veh_ang</em>, <em>road_x</em>, <em>road_y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior.Lat_behavior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior.Lat_behavior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate driver's lateral behaviors according to driving state</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>veh_position_x: Vehicle position x on environment</li>
+<li>veh_position_y: Vehicle position y on environment</li>
+<li>veh_ang: Vehicle heading angle</li>
+<li>road_x: Horizontal geometric information of environment</li>
+<li>road_y: Vertical geometric information of environment</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last simple">
+<li>u_steer: Driver's steering value [-]</li>
+</ul>
+</dd>
+<dt>Include:</dt>
+<dd><ul class="first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Behavior(Lateral_state_recog)</span></code>: Determine static state</li>
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Behavior(Lat_control)</span></code>: Control driver action</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Behavior.Lat_control">
+<code class="descname">Lat_control</code><span class="sig-paren">(</span><em>lane_offset</em>, <em>angle_diff</em>, <em>offset_des=0</em>, <em>angle_diff_des=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior.Lat_control"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior.Lat_control" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine driver's steering according to lateral offset, heading angle</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>lat_offset: Road offset [m]</li>
+<li>angle_diff: Heading angle difference [rad]</li>
+<li>offset_des: Desired lateral offset (initial = 0) [m]</li>
+<li>angle_diff_des: Desired angular offset (initial = 0) [rad]</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last simple">
+<li>steer_out_filt: Driver's steering value [-]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Behavior.Lateral_state_recog">
+<code class="descname">Lateral_state_recog</code><span class="sig-paren">(</span><em>veh_position_x</em>, <em>veh_position_y</em>, <em>veh_ang</em>, <em>road_x</em>, <em>road_y</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior.Lateral_state_recog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior.Lateral_state_recog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lateral state recognition according to road offset and heading angle</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>veh_position_x: Vehicle position x on environment</li>
+<li>veh_position_y: Vehicle position y on environment</li>
+<li>veh_ang: Vehicle heading angle</li>
+<li>road_x: Horizontal geometric information of environment</li>
+<li>road_y: Vertical geometric information of environment</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last simple">
+<li><dl class="first docutils">
+<dt>stLateral: Lateral state</dt>
+<dd><ul class="first last">
+<li>angle_diff: Heading angle difference [rad]</li>
+<li>lat_offset: Road offset [m]</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Behavior.Lon_behavior">
+<code class="descname">Lon_behavior</code><span class="sig-paren">(</span><em>static_obj_in</em>, <em>veh_position_s</em>, <em>road_len</em>, <em>veh_speed</em>, <em>pre_veh_speed='None'</em>, <em>pre_veh_reldis=250</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior.Lon_behavior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior.Lon_behavior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate driver's longitudinal behaviors according to driving state</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>static_obj_in: Static object information of driving route</li>
+<li>road_len: Road length of driving route</li>
+<li>veh_position_s: Current vehicle position on environment</li>
+<li>veh_speed: Current vehicle velocity [m/s]</li>
+<li>pre_veh_speed: Preceding vehicle velocity [m/s]</li>
+<li>pre_veh_reldis: Relative distance to preceding vehicle [m]</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last simple">
+<li>acc_out: Acceleration pedal position [-]</li>
+<li>brk_out: Brake pedal position [-]</li>
+</ul>
+</dd>
+<dt>Include:</dt>
+<dd><ul class="first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Behavior(Static_state_recog)</span></code> : Determine static state</li>
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Behavior(Dynamic_state_recog)</span></code> : Determine dynamic state</li>
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Behavior(Lon_vel_set)</span></code> : Set velocity set point</li>
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Behavior(Lon_control)</span></code> : Control driver action</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Behavior.Lon_control">
+<code class="descname">Lon_control</code><span class="sig-paren">(</span><em>veh_vel_set</em>, <em>veh_vel</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior.Lon_control"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior.Lon_control" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine driver's acceleration and brake pedal position according to velocity set point</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>veh_vel_set: Velocity set point [m/s]</li>
+<li>veh_vel: Current vehicle velocity [m/s]</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last simple">
+<li>u_acc: Driver's acceleration pedal position [-]</li>
+<li>u_brk: Driver's brake pedal position [-]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Behavior.Lon_vel_set">
+<code class="descname">Lon_vel_set</code><span class="sig-paren">(</span><em>stStatic</em>, <em>stDynamic</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior.Lon_vel_set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior.Lon_vel_set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine vehicle velocity set point according to longitudinal state</p>
+<p>Velocity set point algorithm:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vel_set</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">vel_set_static</span><span class="p">,</span> <span class="n">vel_set_dynamic</span><span class="p">)</span>
+    <span class="c1"># vel_set_static</span>
+    <span class="k">if</span> <span class="n">tmp_state_step_static</span> <span class="o">==</span> <span class="s1">&#39;Cruise&#39;</span><span class="p">:</span>
+        <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span>
+    <span class="k">elif</span> <span class="n">tmp_state_step_static</span> <span class="o">==</span> <span class="s1">&#39;Tl_stop&#39;</span><span class="p">:</span>
+        <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_forecast_dis</span> <span class="o">-</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_reldis</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_forecast_dis</span>
+    <span class="k">elif</span> <span class="n">tmp_state_step_static</span> <span class="o">==</span> <span class="s1">&#39;Curve&#39;</span><span class="p">:</span>
+        <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span> <span class="o">-</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_param</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_curve_speed_set_curvcoef</span> <span class="o">+</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_reldis</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_curve_speed_set_discoef</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># vel_set_dynamic</span>
+    <span class="k">if</span> <span class="n">tmp_state_step_dynamic</span> <span class="o">==</span> <span class="s1">&#39;Cruise&#39;</span><span class="p">:</span>
+        <span class="n">veh_speed_set_dynamic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">veh_speed_set_dynamic</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">stDynamic</span><span class="o">.</span><span class="n">state_param</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>stStatic: Static state information</li>
+<li>stDynamic: Dynamic state information</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last simple">
+<li>veh_speed_set_filt: Vehicle velocity set point [m/s]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Behavior.Maneuver_config">
+<code class="descname">Maneuver_config</code><span class="sig-paren">(</span><em>cruise_speed_set=15</em>, <em>mincv_speed_set=5</em>, <em>conf_curve_speed_set_curvcoef=1000</em>, <em>conf_curve_speed_set_discoef=0.01</em>, <em>transition_dis=20</em>, <em>forecast_dis=200</em>, <em>cf_dis=120</em>, <em>lat_off=0.5</em>, <em>filtnum_pedal=0.1</em>, <em>filtnum_steer=0.1</em>, <em>filtnum_spdset=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior.Maneuver_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior.Maneuver_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure driver's maneuver</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>Cruise speed set</li>
+<li>Configurable parameters for static objectives</li>
+<li>Filter values for driver's control input</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Behavior.Static_state_recog">
+<code class="descname">Static_state_recog</code><span class="sig-paren">(</span><em>static_obj_in</em>, <em>road_len</em>, <em>veh_position_s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Behavior.Static_state_recog"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Behavior.Static_state_recog" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static state recognition for driving conditions</p>
+<p>Determine current longitudinal state for driving conditions</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>static_obj_in: Static object information of driving route</li>
+<li>road_len: Road length of driving route</li>
+<li>veh_position_s: Current vehicle position on environment</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last simple">
+<li><dl class="first docutils">
+<dt>stStatic: Static state</dt>
+<dd><ul class="first last">
+<li>Tl (Traffic light): Distance to traffic light and traffic light state (red, green)</li>
+<li>Curve: Distance to curve and curvature</li>
+<li>Cruise: No specific object</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pysim.models.model_maneuver.Mod_Driver">
+<em class="property">class </em><code class="descclassname">pysim.models.model_maneuver.</code><code class="descname">Mod_Driver</code><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Driver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Driver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<ul class="simple">
+<li>Driver module</li>
+</ul>
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Driver.set_driver_char">
+<code class="descname">set_driver_char</code><span class="sig-paren">(</span><em>DriverChar='Normal'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Driver.set_driver_char"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Driver.set_driver_char" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set driver parameter values according to characteristics</p>
+<dl class="docutils">
+<dt>Characteristics:</dt>
+<dd><ul class="first last simple">
+<li>Normal</li>
+<li>Aggressive</li>
+<li>Defensive</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_maneuver.Mod_Driver.set_driver_param">
+<code class="descname">set_driver_param</code><span class="sig-paren">(</span><em>P_gain_lon=2</em>, <em>I_gain_lon=0.5</em>, <em>D_gain_lon=0</em>, <em>P_gain_lat=0.001</em>, <em>I_gain_lat=0.0001</em>, <em>D_gain_lat=0</em>, <em>P_gain_yaw=0.1</em>, <em>I_gain_yaw=0.1</em>, <em>D_gain_yaw=0</em>, <em>shift_time=0.5</em>, <em>max_acc=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_maneuver.html#Mod_Driver.set_driver_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_maneuver.Mod_Driver.set_driver_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set driver parameter values</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd><ul class="first last simple">
+<li>PID gains for lon control</li>
+<li>PID gains for lat offset control</li>
+<li>PID gains for yaw control</li>
+<li>Shift time</li>
+<li>Maximum acceleration value</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="pysim.models.model_maneuver.Ts">
+<code class="descclassname">pysim.models.model_maneuver.</code><code class="descname">Ts</code><em class="property"> = 0.01</em><a class="headerlink" href="#pysim.models.model_maneuver.Ts" title="Permalink to this definition">¶</a></dt>
+<dd><p>global vairable: simulation sampling timeself.</p>
+<p>you can declare other sampling time in application as vairable <code class="docutils literal notranslate"><span class="pre">Ts</span></code></p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="pysim.models.model_vehicle.html" class="btn btn-neutral" title="pysim models - vehicle model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Kyunghan.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.9',
+            LANGUAGE:'python',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

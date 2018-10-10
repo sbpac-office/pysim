@@ -1,0 +1,694 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pysim.models.model_maneuver &mdash; pysim 0.9 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pysim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../pysim.html">pysim package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pysim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pysim.models.model_maneuver</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pysim.models.model_maneuver</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Simulation model : Maneuver</span>
+<span class="sd">==============================================================</span>
+
+<span class="sd">Description</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* Simulate driver behavior</span>
+
+<span class="sd">Modules summary</span>
+<span class="sd">~~~~~~~~~~~~~~~~~</span>
+<span class="sd">* Driver module - driver characteristics</span>
+<span class="sd">    * set_char - set parameters according to driver characteristics</span>
+<span class="sd">        * set_driver_param - set parameters</span>
+
+<span class="sd">* Behavior module - contain ``driver module`` and simulate driver&#39;s behavior</span>
+<span class="sd">    * Driver_set - set driver control parameter from determined driver module</span>
+<span class="sd">    * Maneuver_config - set maneuver configuration</span>
+<span class="sd">    * Lon_behavior - determine longitudinal behavior</span>
+<span class="sd">        * Static_state_recog - longitudinal state recognition for static objectives</span>
+<span class="sd">        * Dynamic_state_recog - longitudinal state recognition for dynamic objectives</span>
+<span class="sd">        * Lon_vel_set - determine longitudinal velocity set point</span>
+<span class="sd">        * Lon_control - control acceleration and brake pedal for velocity set point</span>
+<span class="sd">    * Lat_behavior - determine lateral behavior</span>
+<span class="sd">        * Lateral_state_recog - lateral state recognition for road offset, heading angle</span>
+<span class="sd">        * Lat_control - control steering for road offset, heading angle</span>
+
+<span class="sd">Update</span>
+<span class="sd">~~~~~~~~~~~~~</span>
+<span class="sd">* [18/05/31] - Initial release - Kyunghan</span>
+<span class="sd">* [18/06/05] - Modification of lon control - Kyunghan</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># import python lib modules</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">pi</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="c1"># import package modules</span>
+<span class="kn">from</span> <span class="nn">pysim.sub_util.sub_utilities</span> <span class="k">import</span> <span class="n">Calc_PrDis</span><span class="p">,</span> <span class="n">Filt_LowPass</span>
+<span class="kn">from</span> <span class="nn">pysim.sub_util.sub_type_def</span> <span class="k">import</span> <span class="n">type_pid_controller</span><span class="p">,</span> <span class="n">type_drvstate</span><span class="p">,</span> <span class="n">type_objective</span><span class="p">,</span> <span class="n">type_hyst</span><span class="p">,</span> <span class="n">type_trnsition_delay</span>
+<span class="c1"># import config data modules</span>
+
+<span class="c1"># simulation sampling time</span>
+<span class="n">Ts</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="sd">&quot;&quot;&quot;global vairable: simulation sampling timeself.</span>
+
+<span class="sd">you can declare other sampling time in application as vairable ``Ts``</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Mod_Driver"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Driver">[docs]</a><span class="k">class</span> <span class="nc">Mod_Driver</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    * Driver module</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_driver_char</span><span class="p">(</span><span class="s1">&#39;Normal&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Mod_Driver.set_driver_char"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Driver.set_driver_char">[docs]</a>    <span class="k">def</span> <span class="nf">set_driver_char</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DriverChar</span> <span class="o">=</span> <span class="s1">&#39;Normal&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set driver parameter values according to characteristics</span>
+
+<span class="sd">        Characteristics:</span>
+<span class="sd">            * Normal</span>
+<span class="sd">            * Aggressive</span>
+<span class="sd">            * Defensive</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">DriverChar</span> <span class="o">==</span> <span class="s1">&#39;Normal&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_driver_param</span><span class="p">(</span><span class="n">P_gain_lon</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">I_gain_lon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">D_gain_lon</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_lat</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">I_gain_lat</span> <span class="o">=</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="n">D_gain_lat</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_yaw</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">I_gain_yaw</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">D_gain_yaw</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shift_time</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">max_acc</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">DriverChar</span> <span class="o">==</span> <span class="s1">&#39;Aggressive&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_driver_param</span><span class="p">(</span><span class="n">P_gain_lon</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">I_gain_lon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">D_gain_lon</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_lat</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">I_gain_lat</span> <span class="o">=</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="n">D_gain_lat</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_yaw</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">I_gain_yaw</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">D_gain_yaw</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shift_time</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">max_acc</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">DriverChar</span> <span class="o">==</span> <span class="s1">&#39;Defensive&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_driver_param</span><span class="p">(</span><span class="n">P_gain_lon</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">I_gain_lon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">D_gain_lon</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_lat</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">I_gain_lat</span> <span class="o">=</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="n">D_gain_lat</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_yaw</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">I_gain_yaw</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">D_gain_yaw</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shift_time</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">max_acc</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Set the driver only = [&#39;&#39;Normal&#39;&#39;, &#39;&#39;Aggressive&#39;&#39;, &#39;&#39;Defensive&#39;&#39;]&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_driver_param</span><span class="p">(</span><span class="n">P_gain_lon</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">I_gain_lon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">D_gain_lon</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_lat</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">I_gain_lat</span> <span class="o">=</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="n">D_gain_lat</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_yaw</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">I_gain_yaw</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">D_gain_yaw</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shift_time</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">max_acc</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mod_Driver.set_driver_param"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Driver.set_driver_param">[docs]</a>    <span class="k">def</span> <span class="nf">set_driver_param</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">P_gain_lon</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">I_gain_lon</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">D_gain_lon</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_lat</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">I_gain_lat</span> <span class="o">=</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="n">D_gain_lat</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">P_gain_yaw</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">I_gain_yaw</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">D_gain_yaw</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shift_time</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">max_acc</span> <span class="o">=</span> <span class="mi">4</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set driver parameter values</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * PID gains for lon control</span>
+<span class="sd">            * PID gains for lat offset control</span>
+<span class="sd">            * PID gains for yaw control</span>
+<span class="sd">            * Shift time</span>
+<span class="sd">            * Maximum acceleration value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_gain_lon</span> <span class="o">=</span> <span class="n">P_gain_lon</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_gain_lon</span> <span class="o">=</span> <span class="n">I_gain_lon</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">D_gain_lon</span> <span class="o">=</span> <span class="n">D_gain_lon</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_gain_lat</span> <span class="o">=</span> <span class="n">P_gain_lat</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_gain_lat</span> <span class="o">=</span> <span class="n">I_gain_lat</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">D_gain_lat</span> <span class="o">=</span> <span class="n">D_gain_lat</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P_gain_yaw</span> <span class="o">=</span> <span class="n">P_gain_yaw</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">I_gain_yaw</span> <span class="o">=</span> <span class="n">I_gain_yaw</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">D_gain_yaw</span> <span class="o">=</span> <span class="n">D_gain_yaw</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shift_time</span> <span class="o">=</span> <span class="n">shift_time</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_acc</span> <span class="o">=</span> <span class="n">max_acc</span></div></div>
+
+<div class="viewcode-block" id="Mod_Behavior"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior">[docs]</a><span class="k">class</span> <span class="nc">Mod_Behavior</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    * Behavior module: Set the ``driver`` model when initialization</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Driver</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stStaticList</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stDynamicList</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stStatic</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stDynamic</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Maneuver_config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Drver_set</span><span class="p">(</span><span class="n">Driver</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Ts_Loc</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()[</span><span class="s1">&#39;Ts&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_acc</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_brk</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_steer</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_steer_offset</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_steer_yaw</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">veh_speed_set</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">veh_speed_set_dynamic</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+
+<div class="viewcode-block" id="Mod_Behavior.Drver_set"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior.Drver_set">[docs]</a>    <span class="k">def</span> <span class="nf">Drver_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DriverSet</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Arrange driver parameters for behavior controller</span>
+
+<span class="sd">        Define PID controller for velocity, offset, yaw</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * DriverSet: driver parameter set</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Driver</span> <span class="o">=</span> <span class="n">DriverSet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lon_Controller_acc</span> <span class="o">=</span> <span class="n">type_pid_controller</span><span class="p">(</span><span class="n">DriverSet</span><span class="o">.</span><span class="n">P_gain_lon</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">I_gain_lon</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">D_gain_lon</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lon_Controller_brk</span> <span class="o">=</span> <span class="n">type_pid_controller</span><span class="p">(</span><span class="n">DriverSet</span><span class="o">.</span><span class="n">P_gain_lon</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">I_gain_lon</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">D_gain_lon</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lat_Controller_offset</span> <span class="o">=</span> <span class="n">type_pid_controller</span><span class="p">(</span><span class="n">DriverSet</span><span class="o">.</span><span class="n">P_gain_lat</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">I_gain_lat</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">D_gain_lat</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lat_Controller_yaw</span> <span class="o">=</span> <span class="n">type_pid_controller</span><span class="p">(</span><span class="n">DriverSet</span><span class="o">.</span><span class="n">P_gain_yaw</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">I_gain_yaw</span><span class="p">,</span> <span class="n">DriverSet</span><span class="o">.</span><span class="n">D_gain_yaw</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stLonControl</span> <span class="o">=</span> <span class="s1">&#39;idle&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Filt_LonShiftTrnsDelay</span> <span class="o">=</span> <span class="n">type_trnsition_delay</span><span class="p">(</span><span class="n">DriverSet</span><span class="o">.</span><span class="n">shift_time</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Maneuver_config"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior.Maneuver_config">[docs]</a>    <span class="k">def</span> <span class="nf">Maneuver_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cruise_speed_set</span> <span class="o">=</span> <span class="mi">15</span><span class="p">,</span> <span class="n">mincv_speed_set</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+                        <span class="n">conf_curve_speed_set_curvcoef</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">conf_curve_speed_set_discoef</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+                        <span class="n">transition_dis</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">forecast_dis</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span> <span class="n">cf_dis</span> <span class="o">=</span> <span class="mi">120</span><span class="p">,</span> <span class="n">lat_off</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+                        <span class="n">filtnum_pedal</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">filtnum_steer</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">filtnum_spdset</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Configure driver&#39;s maneuver</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * Cruise speed set</span>
+<span class="sd">            * Configurable parameters for static objectives</span>
+<span class="sd">            * Filter values for driver&#39;s control input</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span> <span class="o">=</span> <span class="n">cruise_speed_set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_mincv_speed_set</span> <span class="o">=</span> <span class="n">mincv_speed_set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_transition_dis</span> <span class="o">=</span> <span class="n">transition_dis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_forecast_dis</span> <span class="o">=</span> <span class="n">forecast_dis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_cf_dis</span> <span class="o">=</span> <span class="n">cf_dis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_lat_off</span> <span class="o">=</span> <span class="n">lat_off</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_spdset</span> <span class="o">=</span> <span class="n">filtnum_spdset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_pedal</span> <span class="o">=</span> <span class="n">filtnum_pedal</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_steer</span> <span class="o">=</span> <span class="n">filtnum_steer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_curve_speed_set_curvcoef</span> <span class="o">=</span> <span class="n">conf_curve_speed_set_curvcoef</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conf_curve_speed_set_discoef</span> <span class="o">=</span> <span class="n">conf_curve_speed_set_discoef</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Static_state_recog"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior.Static_state_recog">[docs]</a>    <span class="k">def</span> <span class="nf">Static_state_recog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">static_obj_in</span><span class="p">,</span> <span class="n">road_len</span><span class="p">,</span> <span class="n">veh_position_s</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Static state recognition for driving conditions</span>
+
+<span class="sd">        Determine current longitudinal state for driving conditions</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * static_obj_in: Static object information of driving route</span>
+<span class="sd">            * road_len: Road length of driving route</span>
+<span class="sd">            * veh_position_s: Current vehicle position on environment</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * stStatic: Static state</span>
+<span class="sd">                * Tl (Traffic light): Distance to traffic light and traffic light state (red, green)</span>
+<span class="sd">                * Curve: Distance to curve and curvature</span>
+<span class="sd">                * Cruise: No specific object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Define local state and objectives</span>
+        <span class="n">stStatic</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="n">forecast_object</span> <span class="o">=</span> <span class="n">type_objective</span><span class="p">()</span>
+        <span class="n">transition_object</span> <span class="o">=</span> <span class="n">type_objective</span><span class="p">()</span>
+        <span class="c1"># Determine map_index (forecasting, transition)</span>
+        <span class="k">if</span> <span class="nb">max</span><span class="p">(</span><span class="n">road_len</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">veh_position_s</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;========== Simulation is terminated!! ========= &#39;</span><span class="p">)</span>
+            <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Termination&#39;</span><span class="p">,</span><span class="s1">&#39;None&#39;</span><span class="p">,</span><span class="s1">&#39;None&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tmp_cur_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">road_len</span> <span class="o">&gt;=</span> <span class="n">veh_position_s</span><span class="p">))</span><span class="o">-</span><span class="mi">1</span>
+            <span class="n">tmp_forecast_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">road_len</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">veh_position_s</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_forecast_dis</span><span class="p">)))</span><span class="o">-</span><span class="mi">1</span>
+            <span class="n">tmp_transition_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">road_len</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="n">veh_position_s</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_transition_dis</span><span class="p">)))</span><span class="o">-</span><span class="mi">1</span>
+            <span class="c1"># Determine objectives from vehicle location to forecasting range</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tmp_cur_index</span><span class="p">,</span><span class="n">tmp_forecast_index</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">forecast_object</span><span class="o">.</span><span class="n">merg_object</span><span class="p">(</span><span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_class</span><span class="p">,</span> <span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_param</span><span class="p">,</span> <span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_loc_s</span><span class="p">)</span>
+            <span class="c1"># Determine objectives from transition range to forecasting range</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tmp_transition_index</span><span class="p">,</span><span class="n">tmp_forecast_index</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">transition_object</span><span class="o">.</span><span class="n">merg_object</span><span class="p">(</span><span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_class</span><span class="p">,</span> <span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_param</span><span class="p">,</span> <span class="n">static_obj_in</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">object_loc_s</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;Tl&#39;</span> <span class="ow">in</span> <span class="n">forecast_object</span><span class="o">.</span><span class="n">object_class</span><span class="p">):</span>
+                <span class="n">tmp_Tl_index</span> <span class="o">=</span> <span class="n">forecast_object</span><span class="o">.</span><span class="n">object_class</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;Tl&#39;</span><span class="p">)</span>
+                <span class="n">tmp_Tl_param</span> <span class="o">=</span> <span class="n">forecast_object</span><span class="o">.</span><span class="n">object_param</span><span class="p">[</span><span class="n">tmp_Tl_index</span><span class="p">]</span>
+                <span class="n">tmp_Tl_loc</span> <span class="o">=</span> <span class="n">forecast_object</span><span class="o">.</span><span class="n">object_loc_s</span><span class="p">[</span><span class="n">tmp_Tl_index</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">tmp_Tl_param</span> <span class="o">==</span> <span class="s1">&#39;red&#39;</span><span class="p">:</span>
+                    <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Tl_stop&#39;</span><span class="p">,</span><span class="n">tmp_Tl_param</span><span class="p">,</span><span class="n">tmp_Tl_loc</span> <span class="o">-</span> <span class="n">veh_position_s</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s1">&#39;Curve&#39;</span> <span class="ow">in</span> <span class="n">transition_object</span><span class="o">.</span><span class="n">object_class</span><span class="p">:</span>
+                        <span class="n">tmp_cv_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_class</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Curve&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">tmp_cv_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_loc_s</span><span class="p">)[</span><span class="n">tmp_cv_index</span><span class="p">])</span>
+                        <span class="n">tmp_cv_param</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_param</span><span class="p">)[</span><span class="n">tmp_cv_index</span><span class="p">])</span>
+                        <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Curve&#39;</span><span class="p">,</span><span class="n">tmp_cv_param</span><span class="p">,</span><span class="n">tmp_cv_loc</span> <span class="o">-</span> <span class="n">veh_position_s</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Cruise&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s1">&#39;Curve&#39;</span> <span class="ow">in</span> <span class="n">transition_object</span><span class="o">.</span><span class="n">object_class</span><span class="p">:</span>
+                    <span class="n">tmp_cv_index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_class</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;Curve&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">tmp_cv_loc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_loc_s</span><span class="p">)[</span><span class="n">tmp_cv_index</span><span class="p">])</span>
+                    <span class="n">tmp_cv_param</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transition_object</span><span class="o">.</span><span class="n">object_param</span><span class="p">)[</span><span class="n">tmp_cv_index</span><span class="p">])</span>
+                    <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Curve&#39;</span><span class="p">,</span><span class="n">tmp_cv_param</span><span class="p">,</span><span class="n">tmp_cv_loc</span> <span class="o">-</span> <span class="n">veh_position_s</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">stStatic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Cruise&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">stStaticList</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">stStatic</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_param</span><span class="p">,</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_reldis</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">forecast_object</span> <span class="o">=</span> <span class="n">forecast_object</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transition_object</span> <span class="o">=</span> <span class="n">transition_object</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stStatic</span> <span class="o">=</span> <span class="n">stStatic</span>
+        <span class="k">return</span> <span class="n">stStatic</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Dynamic_state_recog"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior.Dynamic_state_recog">[docs]</a>    <span class="k">def</span> <span class="nf">Dynamic_state_recog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pre_veh_speed</span><span class="p">,</span> <span class="n">pre_veh_reldis</span> <span class="o">=</span> <span class="mi">250</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Daynamic state recognition for driving conditions</span>
+
+<span class="sd">        Determine current longitudinal state for preceding vehicle</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * pre_veh_speed: Velocity of preceding vehicle [m/s]</span>
+<span class="sd">            * pre_veh_reldis: Relative distance of preceding vehicle [m]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * stDynamic: Dynamic state</span>
+<span class="sd">                * Cf: Car-following state</span>
+<span class="sd">                * Cruise: No specific object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stDynamic</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pre_veh_reldis</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cf_dis</span><span class="p">:</span>
+            <span class="n">stDynamic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Cruise&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stDynamic</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="s1">&#39;Cf&#39;</span><span class="p">,</span> <span class="n">pre_veh_speed</span><span class="p">,</span> <span class="n">pre_veh_reldis</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stDynamicList</span><span class="o">.</span><span class="n">add_state</span><span class="p">(</span><span class="n">stDynamic</span><span class="o">.</span><span class="n">state</span><span class="p">,</span> <span class="n">stDynamic</span><span class="o">.</span><span class="n">state_param</span><span class="p">,</span> <span class="n">stDynamic</span><span class="o">.</span><span class="n">state_reldis</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stDynamic</span> <span class="o">=</span> <span class="n">stDynamic</span>
+        <span class="k">return</span> <span class="n">stDynamic</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Lon_vel_set"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior.Lon_vel_set">[docs]</a>    <span class="k">def</span> <span class="nf">Lon_vel_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stStatic</span><span class="p">,</span> <span class="n">stDynamic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine vehicle velocity set point according to longitudinal state</span>
+
+<span class="sd">        Velocity set point algorithm::</span>
+
+<span class="sd">            vel_set = min(vel_set_static, vel_set_dynamic)</span>
+<span class="sd">                # vel_set_static</span>
+<span class="sd">                if tmp_state_step_static == &#39;Cruise&#39;:</span>
+<span class="sd">                    veh_speed_set_static = self.conf_cruise_speed_set</span>
+<span class="sd">                elif tmp_state_step_static == &#39;Tl_stop&#39;:</span>
+<span class="sd">                    veh_speed_set_static = self.conf_cruise_speed_set - self.conf_cruise_speed_set*(self.conf_forecast_dis - stStatic.state_reldis)/self.conf_forecast_dis</span>
+<span class="sd">                elif tmp_state_step_static == &#39;Curve&#39;:</span>
+<span class="sd">                    veh_speed_set_static = self.conf_cruise_speed_set - stStatic.state_param*self.conf_curve_speed_set_curvcoef + stStatic.state_reldis*self.conf_curve_speed_set_discoef</span>
+<span class="sd">                else:</span>
+<span class="sd">                    veh_speed_set_static = 0</span>
+
+<span class="sd">                # vel_set_dynamic</span>
+<span class="sd">                if tmp_state_step_dynamic == &#39;Cruise&#39;:</span>
+<span class="sd">                    veh_speed_set_dynamic = self.conf_cruise_speed_set</span>
+<span class="sd">                else:</span>
+<span class="sd">                    veh_speed_set_dynamic = sorted((0, stDynamic.state_param , self.conf_cruise_speed_set))[1]</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * stStatic: Static state information</span>
+<span class="sd">            * stDynamic: Dynamic state information</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * veh_speed_set_filt: Vehicle velocity set point [m/s]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Determination of velocity set from static state</span>
+        <span class="n">tmp_state_step_static</span> <span class="o">=</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state</span>
+        <span class="k">if</span> <span class="n">tmp_state_step_static</span> <span class="o">==</span> <span class="s1">&#39;Cruise&#39;</span><span class="p">:</span>
+            <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span>
+        <span class="k">elif</span> <span class="n">tmp_state_step_static</span> <span class="o">==</span> <span class="s1">&#39;Tl_stop&#39;</span><span class="p">:</span>
+            <span class="n">tmp_state_reldis_step</span> <span class="o">=</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_reldis</span>
+            <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_forecast_dis</span> <span class="o">-</span> <span class="n">tmp_state_reldis_step</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_forecast_dis</span>
+        <span class="k">elif</span> <span class="n">tmp_state_step_static</span> <span class="o">==</span> <span class="s1">&#39;Curve&#39;</span><span class="p">:</span>
+            <span class="n">tmp_param_step</span> <span class="o">=</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_param</span>
+            <span class="n">tmp_reldis_step</span> <span class="o">=</span> <span class="n">stStatic</span><span class="o">.</span><span class="n">state_reldis</span>
+            <span class="c1"># output saturation</span>
+            <span class="n">veh_speed_set_curve</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span> <span class="o">-</span> <span class="n">tmp_param_step</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_curve_speed_set_curvcoef</span> <span class="o">+</span> <span class="n">tmp_reldis_step</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_curve_speed_set_discoef</span>
+            <span class="c1"># veh_speed_set_static = sorted((self.conf_mincv_speed_set, veh_speed_set_curve, self.conf_cruise_speed_set))[1]</span>
+            <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="n">veh_speed_set_curve</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="c1"># Determination of velocity set from dynamic state</span>
+        <span class="n">tmp_state_step_dynamic</span> <span class="o">=</span> <span class="n">stDynamic</span><span class="o">.</span><span class="n">state</span>
+        <span class="k">if</span> <span class="n">tmp_state_step_dynamic</span> <span class="o">==</span> <span class="s1">&#39;Cruise&#39;</span><span class="p">:</span>
+            <span class="n">veh_speed_set_dynamic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">tmp_preveh_vel</span> <span class="o">=</span> <span class="n">stDynamic</span><span class="o">.</span><span class="n">state_param</span> <span class="c1"># have to set the cruise speed set</span>
+            <span class="n">veh_speed_set_dynamic</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">tmp_preveh_vel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_cruise_speed_set</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">veh_speed_set_dynamic_filt</span> <span class="o">=</span> <span class="n">Filt_LowPass</span><span class="p">(</span><span class="n">veh_speed_set_dynamic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">veh_speed_set_dynamic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_spdset</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_Loc</span><span class="p">)</span>
+        <span class="n">veh_speed_set_static_filt</span> <span class="o">=</span> <span class="n">Filt_LowPass</span><span class="p">(</span><span class="n">veh_speed_set_static</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">veh_speed_set_static</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_spdset</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_Loc</span><span class="p">)</span>
+
+        <span class="n">veh_speed_set</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">veh_speed_set_dynamic</span><span class="p">,</span><span class="n">veh_speed_set_static</span><span class="p">)</span>
+        <span class="n">veh_speed_set_filt</span> <span class="o">=</span> <span class="n">Filt_LowPass</span><span class="p">(</span><span class="n">veh_speed_set</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">veh_speed_set</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_spdset</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_Loc</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">veh_speed_set</span> <span class="o">=</span> <span class="n">veh_speed_set_filt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">veh_speed_set_dynamic</span> <span class="o">=</span> <span class="n">veh_speed_set_dynamic_filt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">veh_speed_set_static</span> <span class="o">=</span> <span class="n">veh_speed_set_static_filt</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">veh_speed_set_filt</span><span class="p">,</span> <span class="n">veh_speed_set_static_filt</span><span class="p">,</span> <span class="n">veh_speed_set_dynamic_filt</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Lon_control"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior.Lon_control">[docs]</a>    <span class="k">def</span> <span class="nf">Lon_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">veh_vel_set</span><span class="p">,</span> <span class="n">veh_vel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine driver&#39;s acceleration and brake pedal position according to velocity set point</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * veh_vel_set: Velocity set point [m/s]</span>
+<span class="sd">            * veh_vel: Current vehicle velocity [m/s]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * u_acc: Driver&#39;s acceleration pedal position [-]</span>
+<span class="sd">            * u_brk: Driver&#39;s brake pedal position [-]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># State definition - Hysteresis filter with shift time</span>
+        <span class="n">vel_error</span> <span class="o">=</span> <span class="n">veh_vel_set</span> <span class="o">-</span> <span class="n">veh_vel</span>
+
+        <span class="k">if</span> <span class="n">vel_error</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">control_mode</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">vel_error</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.01</span><span class="p">:</span>
+            <span class="n">control_mode</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">control_mode</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">control_mode_filt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Filt_LonShiftTrnsDelay</span><span class="o">.</span><span class="n">filt_delay</span><span class="p">(</span><span class="n">control_mode</span><span class="p">)</span>
+
+        <span class="n">u_acc_ctl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lon_Controller_acc</span><span class="o">.</span><span class="n">Control</span><span class="p">(</span><span class="n">veh_vel_set</span><span class="p">,</span><span class="n">veh_vel</span><span class="p">)</span>
+        <span class="n">u_brk_ctl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lon_Controller_brk</span><span class="o">.</span><span class="n">Control</span><span class="p">(</span><span class="n">veh_vel</span><span class="p">,</span><span class="n">veh_vel_set</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">control_mode</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">u_acc</span> <span class="o">=</span> <span class="n">u_acc_ctl</span><span class="p">;</span>
+            <span class="n">u_acc_raw</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span> <span class="n">u_acc</span><span class="p">,</span> <span class="mf">1.</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">u_acc_filt</span> <span class="o">=</span> <span class="n">Filt_LowPass</span><span class="p">(</span><span class="n">u_acc_raw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_acc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_pedal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_Loc</span><span class="p">)</span>
+            <span class="n">u_brk_filt</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Lon_Controller_brk</span><span class="o">.</span><span class="n">I_val_old</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">elif</span> <span class="n">control_mode</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">u_brk</span> <span class="o">=</span> <span class="n">u_brk_ctl</span><span class="p">;</span>
+            <span class="n">u_brk_raw</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="mf">0.</span><span class="p">,</span> <span class="n">u_brk</span><span class="p">,</span> <span class="mf">1.</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">u_brk_filt</span> <span class="o">=</span> <span class="n">Filt_LowPass</span><span class="p">(</span><span class="n">u_brk_raw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_brk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_pedal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_Loc</span><span class="p">)</span>
+            <span class="n">u_acc_filt</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Lon_Controller_acc</span><span class="o">.</span><span class="n">I_val_old</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">u_brk_raw</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">u_acc_raw</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">u_acc_filt</span> <span class="o">=</span> <span class="n">Filt_LowPass</span><span class="p">(</span><span class="n">u_acc_raw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_acc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_pedal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_Loc</span><span class="p">)</span>
+            <span class="n">u_brk_filt</span> <span class="o">=</span> <span class="n">Filt_LowPass</span><span class="p">(</span><span class="n">u_brk_raw</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_brk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_pedal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ts_Loc</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Lon_Controller_brk</span><span class="o">.</span><span class="n">I_val_old</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Lon_Controller_acc</span><span class="o">.</span><span class="n">I_val_old</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+        <span class="c1"># Set value</span>
+<span class="c1">#        if stControl == &#39;acc&#39;:</span>
+<span class="c1">#            acc_out_raw = trq_set/100</span>
+<span class="c1">#            acc_out = Filt_LowPass(acc_out_raw, self.u_acc,self.conf_act_filt ,self.Ts_Loc)</span>
+<span class="c1">#            brk_out = 0</span>
+<span class="c1">#        elif stControl == &#39;brk&#39;:</span>
+<span class="c1">#            acc_out = 0</span>
+<span class="c1">#            brk_out_raw = -trq_set/100</span>
+<span class="c1">#            brk_out = Filt_LowPass(brk_out_raw, self.u_brk,self.conf_act_filt ,self.Ts_Loc)</span>
+<span class="c1">#        elif stControl == &#39;idle&#39;:</span>
+<span class="c1">#            acc_out = 0</span>
+<span class="c1">#            brk_out = 0</span>
+<span class="c1">#        else:</span>
+<span class="c1">#            acc_out = 0</span>
+<span class="c1">#            brk_out = 0</span>
+<span class="c1">#        self.trq_set_lon = trq_set</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stLonControl</span> <span class="o">=</span> <span class="n">control_mode_filt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_acc</span> <span class="o">=</span> <span class="n">u_acc_filt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_brk</span> <span class="o">=</span> <span class="n">u_brk_filt</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">u_acc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u_brk</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Lon_behavior"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior.Lon_behavior">[docs]</a>    <span class="k">def</span> <span class="nf">Lon_behavior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">static_obj_in</span><span class="p">,</span> <span class="n">veh_position_s</span><span class="p">,</span> <span class="n">road_len</span><span class="p">,</span> <span class="n">veh_speed</span><span class="p">,</span> <span class="n">pre_veh_speed</span> <span class="o">=</span> <span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="n">pre_veh_reldis</span> <span class="o">=</span> <span class="mi">250</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Simulate driver&#39;s longitudinal behaviors according to driving state</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * static_obj_in: Static object information of driving route</span>
+<span class="sd">            * road_len: Road length of driving route</span>
+<span class="sd">            * veh_position_s: Current vehicle position on environment</span>
+<span class="sd">            * veh_speed: Current vehicle velocity [m/s]</span>
+<span class="sd">            * pre_veh_speed: Preceding vehicle velocity [m/s]</span>
+<span class="sd">            * pre_veh_reldis: Relative distance to preceding vehicle [m]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * acc_out: Acceleration pedal position [-]</span>
+<span class="sd">            * brk_out: Brake pedal position [-]</span>
+
+<span class="sd">        Include:</span>
+<span class="sd">            * ``Mod_Behavior(Static_state_recog)`` : Determine static state</span>
+<span class="sd">            * ``Mod_Behavior(Dynamic_state_recog)`` : Determine dynamic state</span>
+<span class="sd">            * ``Mod_Behavior(Lon_vel_set)`` : Set velocity set point</span>
+<span class="sd">            * ``Mod_Behavior(Lon_control)`` : Control driver action</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stStatic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Static_state_recog</span><span class="p">(</span><span class="n">static_obj_in</span><span class="p">,</span> <span class="n">veh_position_s</span><span class="p">,</span> <span class="n">road_len</span><span class="p">)</span>
+        <span class="n">stDynamic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Dynamic_state_recog</span><span class="p">(</span><span class="n">pre_veh_speed</span><span class="p">,</span> <span class="n">pre_veh_reldis</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">veh_speed_set</span><span class="p">,</span> <span class="n">veh_speed_set_static</span><span class="p">,</span> <span class="n">veh_speed_set_dynamic</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lon_vel_set</span><span class="p">(</span><span class="n">stStatic</span><span class="p">,</span> <span class="n">stDynamic</span><span class="p">)</span>
+        <span class="p">[</span><span class="n">acc_out</span><span class="p">,</span> <span class="n">brk_out</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lon_control</span><span class="p">(</span><span class="n">veh_speed_set</span><span class="p">,</span> <span class="n">veh_speed</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">acc_out</span><span class="p">,</span> <span class="n">brk_out</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Lateral_state_recog"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior.Lateral_state_recog">[docs]</a>    <span class="k">def</span> <span class="nf">Lateral_state_recog</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">veh_position_x</span><span class="p">,</span> <span class="n">veh_position_y</span><span class="p">,</span> <span class="n">veh_ang</span><span class="p">,</span> <span class="n">road_x</span><span class="p">,</span> <span class="n">road_y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Lateral state recognition according to road offset and heading angle</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * veh_position_x: Vehicle position x on environment</span>
+<span class="sd">            * veh_position_y: Vehicle position y on environment</span>
+<span class="sd">            * veh_ang: Vehicle heading angle</span>
+<span class="sd">            * road_x: Horizontal geometric information of environment</span>
+<span class="sd">            * road_y: Vertical geometric information of environment</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * stLateral: Lateral state</span>
+<span class="sd">                * angle_diff: Heading angle difference [rad]</span>
+<span class="sd">                * lat_offset: Road offset [m]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">stLateral</span> <span class="o">=</span> <span class="n">type_drvstate</span><span class="p">()</span>
+        <span class="p">[</span><span class="n">lon_offset</span><span class="p">,</span> <span class="n">lat_offset</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">min_index</span><span class="p">,</span> <span class="n">veh_an</span><span class="p">,</span> <span class="n">road_an</span><span class="p">]</span> <span class="o">=</span> <span class="n">Calc_PrDis</span><span class="p">(</span><span class="n">road_x</span><span class="p">,</span> <span class="n">road_y</span><span class="p">,</span> <span class="p">[</span><span class="n">veh_position_x</span><span class="p">,</span> <span class="n">veh_position_y</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">veh_ang</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">veh_ang</span> <span class="o">=</span> <span class="n">veh_ang</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span>
+        <span class="n">angle_diff</span> <span class="o">=</span> <span class="n">road_an</span> <span class="o">-</span> <span class="n">veh_ang</span>
+        <span class="k">if</span> <span class="n">angle_diff</span> <span class="o">&gt;=</span> <span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">angle_diff</span> <span class="o">=</span> <span class="n">angle_diff</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span>
+        <span class="k">elif</span> <span class="n">angle_diff</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">:</span>
+            <span class="n">angle_diff</span> <span class="o">=</span> <span class="n">angle_diff</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">pi</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">angle_diff</span> <span class="o">=</span> <span class="n">angle_diff</span>
+        <span class="n">stLateral</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">angle_diff</span><span class="p">,</span> <span class="n">lat_offset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_veh_an</span> <span class="o">=</span> <span class="n">veh_an</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">road_an</span> <span class="o">=</span> <span class="n">road_an</span>
+        <span class="k">return</span> <span class="n">stLateral</span></div>
+
+<div class="viewcode-block" id="Mod_Behavior.Lat_control"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior.Lat_control">[docs]</a>    <span class="k">def</span> <span class="nf">Lat_control</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">lane_offset</span><span class="p">,</span> <span class="n">angle_diff</span><span class="p">,</span> <span class="n">offset_des</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">angle_diff_des</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Determine driver&#39;s steering according to lateral offset, heading angle</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * lat_offset: Road offset [m]</span>
+<span class="sd">            * angle_diff: Heading angle difference [rad]</span>
+<span class="sd">            * offset_des: Desired lateral offset (initial = 0) [m]</span>
+<span class="sd">            * angle_diff_des: Desired angular offset (initial = 0) [rad]</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * steer_out_filt: Driver&#39;s steering value [-]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">steer_out_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lat_Controller_offset</span><span class="o">.</span><span class="n">Control</span><span class="p">(</span><span class="n">offset_des</span><span class="p">,</span><span class="n">lane_offset</span><span class="p">)</span>
+        <span class="n">steer_out_offset</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="o">-</span><span class="mf">100.</span><span class="p">,</span> <span class="n">steer_out_offset</span><span class="p">,</span> <span class="mf">100.</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1">#steer_out_offset_filt = Filt_LowPass(steer_out_offset,self.u_steer_offset,self.conf_filtnum_steer,self.Ts_Loc)</span>
+
+        <span class="n">steer_out_yaw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lat_Controller_yaw</span><span class="o">.</span><span class="n">Control</span><span class="p">(</span><span class="n">angle_diff_des</span><span class="p">,</span><span class="o">-</span><span class="n">angle_diff</span><span class="p">)</span>
+        <span class="n">steer_out_yaw</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="o">-</span><span class="mf">100.</span><span class="p">,</span> <span class="n">steer_out_yaw</span><span class="p">,</span> <span class="mf">100.</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1">#steer_out_yaw_filt = Filt_LowPass(steer_out_yaw,self.u_steer_yaw,self.conf_filtnum_steer,self.Ts_Loc)</span>
+
+        <span class="n">steer_out</span> <span class="o">=</span> <span class="n">steer_out_offset</span> <span class="o">+</span> <span class="n">steer_out_yaw</span>
+        <span class="n">steer_out</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">((</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="n">steer_out</span><span class="p">,</span> <span class="mf">1.</span><span class="p">))[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">steer_out_filt</span> <span class="o">=</span> <span class="n">Filt_LowPass</span><span class="p">(</span><span class="n">steer_out</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">u_steer</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">conf_filtnum_steer</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">Ts_Loc</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_steer_offset</span> <span class="o">=</span> <span class="n">steer_out_offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_steer_yaw</span> <span class="o">=</span> <span class="n">steer_out_yaw</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u_steer</span> <span class="o">=</span> <span class="n">steer_out_filt</span>
+        <span class="k">return</span> <span class="n">steer_out_filt</span></div>
+<div class="viewcode-block" id="Mod_Behavior.Lat_behavior"><a class="viewcode-back" href="../../../pysim.models.model_environment.html#pysim.models.model_maneuver.Mod_Behavior.Lat_behavior">[docs]</a>    <span class="k">def</span> <span class="nf">Lat_behavior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">veh_position_x</span><span class="p">,</span> <span class="n">veh_position_y</span><span class="p">,</span> <span class="n">veh_ang</span><span class="p">,</span> <span class="n">road_x</span><span class="p">,</span> <span class="n">road_y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Simulate driver&#39;s lateral behaviors according to driving state</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            * veh_position_x: Vehicle position x on environment</span>
+<span class="sd">            * veh_position_y: Vehicle position y on environment</span>
+<span class="sd">            * veh_ang: Vehicle heading angle</span>
+<span class="sd">            * road_x: Horizontal geometric information of environment</span>
+<span class="sd">            * road_y: Vertical geometric information of environment</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * u_steer: Driver&#39;s steering value [-]</span>
+
+<span class="sd">        Include:</span>
+<span class="sd">            * ``Mod_Behavior(Lateral_state_recog)``: Determine static state</span>
+<span class="sd">            * ``Mod_Behavior(Lat_control)``: Control driver action</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stLateral</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lateral_state_recog</span><span class="p">(</span><span class="n">veh_position_x</span><span class="p">,</span> <span class="n">veh_position_y</span><span class="p">,</span> <span class="n">veh_ang</span><span class="p">,</span> <span class="n">road_x</span><span class="p">,</span> <span class="n">road_y</span><span class="p">)</span>
+        <span class="n">angle_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stLateral</span><span class="o">.</span><span class="n">state_param</span>
+        <span class="n">lane_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stLateral</span><span class="o">.</span><span class="n">state_reldis</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stLateral</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s1">&#39;Left&#39;</span><span class="p">:</span>
+            <span class="n">lane_offset</span> <span class="o">=</span> <span class="o">-</span><span class="n">lane_offset</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lane_offset</span> <span class="o">=</span> <span class="n">lane_offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lane_offset</span> <span class="o">=</span> <span class="n">lane_offset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">psi_offset</span> <span class="o">=</span> <span class="n">angle_offset</span>
+        <span class="n">u_steer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lat_control</span><span class="p">(</span><span class="n">lane_offset</span><span class="p">,</span> <span class="n">angle_offset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">u_steer</span></div></div>
+<span class="c1">#%%  ----- test ground -----</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Kyunghan.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.9',
+            LANGUAGE:'python',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

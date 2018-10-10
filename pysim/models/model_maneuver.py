@@ -3,19 +3,32 @@
 Simulation model : Maneuver
 ==============================================================
 
-Author
-~~~~~~~~~~~~~
-* kyunghan <kyunghah.min@gmail.com>
-
 Description
 ~~~~~~~~~~~~~
-* Driver model
-* Behavior model
+* Simulate driver behavior
+
+Modules summary
+~~~~~~~~~~~~~~~~~
+* Driver module - driver characteristics
+    * set_char - set parameters according to driver characteristics
+        * set_driver_param - set parameters
+
+* Behavior module - contain ``driver module`` and simulate driver's behavior
+    * Driver_set - set driver control parameter from determined driver module
+    * Maneuver_config - set maneuver configuration
+    * Lon_behavior - determine longitudinal behavior
+        * Static_state_recog - longitudinal state recognition for static objectives
+        * Dynamic_state_recog - longitudinal state recognition for dynamic objectives
+        * Lon_vel_set - determine longitudinal velocity set point
+        * Lon_control - control acceleration and brake pedal for velocity set point
+    * Lat_behavior - determine lateral behavior
+        * Lateral_state_recog - lateral state recognition for road offset, heading angle
+        * Lat_control - control steering for road offset, heading angle
 
 Update
 ~~~~~~~~~~~~~
-* [18/05/31] - Initial release - kyunghan
-* [18/06/05] - Modification of lon control - kyunghan
+* [18/05/31] - Initial release - Kyunghan
+* [18/06/05] - Modification of lon control - Kyunghan
 """
 # import python lib modules
 from math import pi
@@ -34,37 +47,19 @@ you can declare other sampling time in application as vairable ``Ts``
 """
 class Mod_Driver:
     """
-    Module description here
-
-    ConfigVariables:
-        * conf_rw_wheel
-        * conf_jw_body
-        * conf_brk_coef
-        * conf_acc_coef
-        * conf_veh_len
-        * ...
-
-    Submodules:
-        * Body_config:
-        * Dyn_config:
-        * Lon_driven_in:
-        * ...
-
-    Operation:
-        Description operation here::
-
-            !!!Make operation diagram here!!!
-            # Module_name(in//out)
-            Motor_control(t_mot, w_mot // des_torque)
-                >> Motor_driven(t_mot, w_mot // v_mot)
-                    >> Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics
-                >> Motor_torque_system(v_mot // des_torque)
-
+    * Driver module
     """
     def __init__(self):
-        self.set_char('Normal')
+        self.set_driver_char('Normal')
 
-    def set_char(self, DriverChar = 'Normal'):
+    def set_driver_char(self, DriverChar = 'Normal'):
+        """Set driver parameter values according to characteristics
+
+        Characteristics:
+            * Normal
+            * Aggressive
+            * Defensive
+        """
         if DriverChar == 'Normal':
             self.set_driver_param(P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0, shift_time = 0.5, max_acc = 4)
         elif DriverChar == 'Aggressive':
@@ -76,6 +71,15 @@ class Mod_Driver:
             self.set_driver_param(P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0, shift_time = 0.5, max_acc = 4)
 
     def set_driver_param(self, P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0, shift_time = 0.5, max_acc = 4):
+        """Set driver parameter values
+
+        Parameters:
+            * PID gains for lon control
+            * PID gains for lat offset control
+            * PID gains for yaw control
+            * Shift time
+            * Maximum acceleration value
+        """
         self.P_gain_lon = P_gain_lon; self.I_gain_lon = I_gain_lon; self.D_gain_lon = D_gain_lon
         self.P_gain_lat = P_gain_lat; self.I_gain_lat = I_gain_lat; self.D_gain_lat = D_gain_lat
         self.P_gain_yaw = P_gain_yaw; self.I_gain_yaw = I_gain_yaw; self.D_gain_yaw = D_gain_yaw
@@ -83,32 +87,7 @@ class Mod_Driver:
 
 class Mod_Behavior:
     """
-    Module description here
-
-    ConfigVariables:
-        * conf_rw_wheel
-        * conf_jw_body
-        * conf_brk_coef
-        * conf_acc_coef
-        * conf_veh_len
-        * ...
-
-    Submodules:
-        * Body_config:
-        * Dyn_config:
-        * Lon_driven_in:
-        * ...
-
-    Operation:
-        Description operation here::
-
-            !!!Make operation diagram here!!!
-            # Module_name(in//out)
-            Motor_control(t_mot, w_mot // des_torque)
-                >> Motor_driven(t_mot, w_mot // v_mot)
-                    >> Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics
-                >> Motor_torque_system(v_mot // des_torque)
-
+    * Behavior module: Set the ``driver`` model when initialization
     """
     def __init__(self, Driver):
         self.stStaticList = type_drvstate()
@@ -130,25 +109,12 @@ class Mod_Behavior:
 
 
     def Drver_set(self, DriverSet):
-        """Function overview here
+        """Arrange driver parameters for behavior controller
 
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        Define PID controller for velocity, offset, yaw
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+            * DriverSet: driver parameter set
         """
         self.Driver = DriverSet
         self.Lon_Controller_acc = type_pid_controller(DriverSet.P_gain_lon, DriverSet.I_gain_lon, DriverSet.D_gain_lon)
@@ -162,25 +128,12 @@ class Mod_Behavior:
                         conf_curve_speed_set_curvcoef = 1000, conf_curve_speed_set_discoef = 0.01,
                         transition_dis = 20, forecast_dis = 200, cf_dis = 120, lat_off = 0.5,
                         filtnum_pedal = 0.1, filtnum_steer = 0.1, filtnum_spdset = 1):
-        """Function overview here
+        """Configure driver's maneuver
 
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+        Parameters:
+            * Cruise speed set
+            * Configurable parameters for static objectives
+            * Filter values for driver's control input
         """
         self.conf_cruise_speed_set = cruise_speed_set
         self.conf_mincv_speed_set = mincv_speed_set
@@ -194,26 +147,21 @@ class Mod_Behavior:
         self.conf_curve_speed_set_curvcoef = conf_curve_speed_set_curvcoef
         self.conf_curve_speed_set_discoef = conf_curve_speed_set_discoef
 
-    def Static_state_recog(self,static_obj_in, veh_position_s, road_len):
-        """Function overview here
+    def Static_state_recog(self,static_obj_in, road_len, veh_position_s):
+        """Static state recognition for driving conditions
 
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        Determine current longitudinal state for driving conditions
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
+            * static_obj_in: Static object information of driving route
+            * road_len: Road length of driving route
+            * veh_position_s: Current vehicle position on environment
 
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+        Returns:
+            * stStatic: Static state
+                * Tl (Traffic light): Distance to traffic light and traffic light state (red, green)
+                * Curve: Distance to curve and curvature
+                * Cruise: No specific object
         """
         # Define local state and objectives
         stStatic = type_drvstate()
@@ -263,25 +211,18 @@ class Mod_Behavior:
         return stStatic
 
     def Dynamic_state_recog(self, pre_veh_speed, pre_veh_reldis = 250):
-        """Function overview here
+        """Daynamic state recognition for driving conditions
 
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        Determine current longitudinal state for preceding vehicle
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
+            * pre_veh_speed: Velocity of preceding vehicle [m/s]
+            * pre_veh_reldis: Relative distance of preceding vehicle [m]
 
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+        Returns:
+            * stDynamic: Dynamic state
+                * Cf: Car-following state
+                * Cruise: No specific object
         """
         stDynamic = type_drvstate()
         if pre_veh_reldis >= self.conf_cf_dis:
@@ -293,25 +234,34 @@ class Mod_Behavior:
         return stDynamic
 
     def Lon_vel_set(self, stStatic, stDynamic):
-        """Function overview here
+        """Determine vehicle velocity set point according to longitudinal state
 
-        Functional description
+        Velocity set point algorithm::
 
-        Code example wirght follows::
+            vel_set = min(vel_set_static, vel_set_dynamic)
+                # vel_set_static
+                if tmp_state_step_static == 'Cruise':
+                    veh_speed_set_static = self.conf_cruise_speed_set
+                elif tmp_state_step_static == 'Tl_stop':
+                    veh_speed_set_static = self.conf_cruise_speed_set - self.conf_cruise_speed_set*(self.conf_forecast_dis - stStatic.state_reldis)/self.conf_forecast_dis
+                elif tmp_state_step_static == 'Curve':
+                    veh_speed_set_static = self.conf_cruise_speed_set - stStatic.state_param*self.conf_curve_speed_set_curvcoef + stStatic.state_reldis*self.conf_curve_speed_set_discoef
+                else:
+                    veh_speed_set_static = 0
 
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+                # vel_set_dynamic
+                if tmp_state_step_dynamic == 'Cruise':
+                    veh_speed_set_dynamic = self.conf_cruise_speed_set
+                else:
+                    veh_speed_set_dynamic = sorted((0, stDynamic.state_param , self.conf_cruise_speed_set))[1]
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
+            * stStatic: Static state information
+            * stDynamic: Dynamic state information
 
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+        Returns:
+            * veh_speed_set_filt: Vehicle velocity set point [m/s]
+
         """
         # Determination of velocity set from static state
         tmp_state_step_static = stStatic.state
@@ -325,7 +275,7 @@ class Mod_Behavior:
             tmp_reldis_step = stStatic.state_reldis
             # output saturation
             veh_speed_set_curve = self.conf_cruise_speed_set - tmp_param_step*self.conf_curve_speed_set_curvcoef + tmp_reldis_step*self.conf_curve_speed_set_discoef
-            veh_speed_set_static = sorted((self.conf_mincv_speed_set, veh_speed_set_curve, self.conf_cruise_speed_set))[1]
+            # veh_speed_set_static = sorted((self.conf_mincv_speed_set, veh_speed_set_curve, self.conf_cruise_speed_set))[1]
             veh_speed_set_static = veh_speed_set_curve
         else:
             veh_speed_set_static = 0
@@ -348,53 +298,16 @@ class Mod_Behavior:
         self.veh_speed_set_static = veh_speed_set_static_filt
         return [veh_speed_set_filt, veh_speed_set_static_filt, veh_speed_set_dynamic_filt]
 
-    def Lon_behavior(self,static_obj_in, veh_position_s, road_len, veh_speed, pre_veh_speed = 'None', pre_veh_reldis = 250):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        stStatic = self.Static_state_recog(static_obj_in, veh_position_s, road_len)
-        stDynamic = self.Dynamic_state_recog(pre_veh_speed, pre_veh_reldis)
-        [veh_speed_set, veh_speed_set_static, veh_speed_set_dynamic] = self.Lon_vel_set(stStatic, stDynamic)
-        [acc_out, brk_out] = self.Lon_control(veh_speed_set, veh_speed)
-        return acc_out, brk_out
-
     def Lon_control(self,veh_vel_set, veh_vel):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        """Determine driver's acceleration and brake pedal position according to velocity set point
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
+            * veh_vel_set: Velocity set point [m/s]
+            * veh_vel: Current vehicle velocity [m/s]
 
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+        Returns:
+            * u_acc: Driver's acceleration pedal position [-]
+            * u_brk: Driver's brake pedal position [-]
         """
         # State definition - Hysteresis filter with shift time
         vel_error = veh_vel_set - veh_vel
@@ -452,26 +365,47 @@ class Mod_Behavior:
         self.u_brk = u_brk_filt
         return [self.u_acc, self.u_brk]
 
-    def Lateral_state_recog(self, veh_position_x, veh_position_y, veh_ang, road_x, road_y):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+    def Lon_behavior(self,static_obj_in, veh_position_s, road_len, veh_speed, pre_veh_speed = 'None', pre_veh_reldis = 250):
+        """Simulate driver's longitudinal behaviors according to driving state
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
+            * static_obj_in: Static object information of driving route
+            * road_len: Road length of driving route
+            * veh_position_s: Current vehicle position on environment
+            * veh_speed: Current vehicle velocity [m/s]
+            * pre_veh_speed: Preceding vehicle velocity [m/s]
+            * pre_veh_reldis: Relative distance to preceding vehicle [m]
 
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+        Returns:
+            * acc_out: Acceleration pedal position [-]
+            * brk_out: Brake pedal position [-]
+
+        Include:
+            * ``Mod_Behavior(Static_state_recog)`` : Determine static state
+            * ``Mod_Behavior(Dynamic_state_recog)`` : Determine dynamic state
+            * ``Mod_Behavior(Lon_vel_set)`` : Set velocity set point
+            * ``Mod_Behavior(Lon_control)`` : Control driver action
+        """
+        stStatic = self.Static_state_recog(static_obj_in, veh_position_s, road_len)
+        stDynamic = self.Dynamic_state_recog(pre_veh_speed, pre_veh_reldis)
+        [veh_speed_set, veh_speed_set_static, veh_speed_set_dynamic] = self.Lon_vel_set(stStatic, stDynamic)
+        [acc_out, brk_out] = self.Lon_control(veh_speed_set, veh_speed)
+        return acc_out, brk_out
+
+    def Lateral_state_recog(self, veh_position_x, veh_position_y, veh_ang, road_x, road_y):
+        """Lateral state recognition according to road offset and heading angle
+
+        Args:
+            * veh_position_x: Vehicle position x on environment
+            * veh_position_y: Vehicle position y on environment
+            * veh_ang: Vehicle heading angle
+            * road_x: Horizontal geometric information of environment
+            * road_y: Vertical geometric information of environment
+
+        Returns:
+            * stLateral: Lateral state
+                * angle_diff: Heading angle difference [rad]
+                * lat_offset: Road offset [m]
         """
         stLateral = type_drvstate()
         [lon_offset, lat_offset, direction, min_index, veh_an, road_an] = Calc_PrDis(road_x, road_y, [veh_position_x, veh_position_y])
@@ -489,26 +423,50 @@ class Mod_Behavior:
         self.road_an = road_an
         return stLateral
 
-    def Lat_behavior(self, veh_position_x, veh_position_y, veh_ang, road_x, road_y):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+    def Lat_control(self,lane_offset, angle_diff, offset_des = 0, angle_diff_des = 0):
+        """Determine driver's steering according to lateral offset, heading angle
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
+            * lat_offset: Road offset [m]
+            * angle_diff: Heading angle difference [rad]
+            * offset_des: Desired lateral offset (initial = 0) [m]
+            * angle_diff_des: Desired angular offset (initial = 0) [rad]
 
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+        Returns:
+            * steer_out_filt: Driver's steering value [-]
+        """
+        steer_out_offset = self.Lat_Controller_offset.Control(offset_des,lane_offset)
+        steer_out_offset = sorted((-100., steer_out_offset, 100.))[1]
+        #steer_out_offset_filt = Filt_LowPass(steer_out_offset,self.u_steer_offset,self.conf_filtnum_steer,self.Ts_Loc)
+
+        steer_out_yaw = self.Lat_Controller_yaw.Control(angle_diff_des,-angle_diff)
+        steer_out_yaw = sorted((-100., steer_out_yaw, 100.))[1]
+        #steer_out_yaw_filt = Filt_LowPass(steer_out_yaw,self.u_steer_yaw,self.conf_filtnum_steer,self.Ts_Loc)
+
+        steer_out = steer_out_offset + steer_out_yaw
+        steer_out = sorted((-1., steer_out, 1.))[1]
+        steer_out_filt = Filt_LowPass(steer_out,self.u_steer,self.conf_filtnum_steer,self.Ts_Loc)
+
+        self.u_steer_offset = steer_out_offset
+        self.u_steer_yaw = steer_out_yaw
+        self.u_steer = steer_out_filt
+        return steer_out_filt
+    def Lat_behavior(self, veh_position_x, veh_position_y, veh_ang, road_x, road_y):
+        """Simulate driver's lateral behaviors according to driving state
+
+        Args:
+            * veh_position_x: Vehicle position x on environment
+            * veh_position_y: Vehicle position y on environment
+            * veh_ang: Vehicle heading angle
+            * road_x: Horizontal geometric information of environment
+            * road_y: Vertical geometric information of environment
+
+        Returns:
+            * u_steer: Driver's steering value [-]
+
+        Include:
+            * ``Mod_Behavior(Lateral_state_recog)``: Determine static state
+            * ``Mod_Behavior(Lat_control)``: Control driver action
         """
         self.stLateral = self.Lateral_state_recog(veh_position_x, veh_position_y, veh_ang, road_x, road_y)
         angle_offset = self.stLateral.state_param
@@ -521,44 +479,6 @@ class Mod_Behavior:
         self.psi_offset = angle_offset
         u_steer = self.Lat_control(lane_offset, angle_offset)
         return u_steer
-
-    def Lat_control(self,lane_offset, angle_dif, offset_des = 0, angle_diff_des = 0):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
-
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
-        """
-        steer_out_offset = self.Lat_Controller_offset.Control(offset_des,lane_offset)
-        steer_out_offset = sorted((-100., steer_out_offset, 100.))[1]
-        #steer_out_offset_filt = Filt_LowPass(steer_out_offset,self.u_steer_offset,self.conf_filtnum_steer,self.Ts_Loc)
-
-        steer_out_yaw = self.Lat_Controller_yaw.Control(angle_diff_des,-angle_dif)
-        steer_out_yaw = sorted((-100., steer_out_yaw, 100.))[1]
-        #steer_out_yaw_filt = Filt_LowPass(steer_out_yaw,self.u_steer_yaw,self.conf_filtnum_steer,self.Ts_Loc)
-
-        steer_out = steer_out_offset + steer_out_yaw
-        steer_out = sorted((-1., steer_out, 1.))[1]
-        steer_out_filt = Filt_LowPass(steer_out,self.u_steer,self.conf_filtnum_steer,self.Ts_Loc)
-
-        self.u_steer_offset = steer_out_offset
-        self.u_steer_yaw = steer_out_yaw
-        self.u_steer = steer_out_filt
-        return steer_out_filt
 #%%  ----- test ground -----
 if __name__ == "__main__":
     pass

@@ -11,6 +11,7 @@ Author
 Description
 -----------
 * Simulation models
+* Test Doc
 
 Models
 ------------
@@ -18,10 +19,10 @@ Models
     * modules: motor, battery, power
 * model_vehicle: Vehicle models
     * modules: body, vehicle
-* model_maneuver: Driver behavior and characteristics
-    * modules: driver, behavior
 * model_environment: Driving environment with road info
     * modules: env
+* model_maneuver: Driver behavior and characteristics
+    * modules: driver, behavior
 
 Update
 -------
@@ -32,5 +33,5 @@ Update
 
 import pysim.models.model_power
 import pysim.models.model_vehicle
-import pysim.models.model_maneuver
 import pysim.models.model_environment
+import pysim.models.model_maneuver

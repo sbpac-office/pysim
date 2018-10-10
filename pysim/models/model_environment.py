@@ -3,17 +3,23 @@
 Simulation model : Environment
 ==============================================================
 
-Author
-~~~~~~~~~~~~~
-* kyunghan <kyunghah.min@gmail.com>
-
 Description
 ~~~~~~~~~~~~~
-* Environment model
+* Import road information for driving environment
+
+Modules summary
+~~~~~~~~~~~~~~~~~
+* Env module - environment module
+    * Env_config - configure environment
+    * Road_static_object - determine road static objects
+        * Road_curve_def - set parameters
+    * Obj_add - add static object (Tl, Curve)
+    * Veh_position_init - Set initial position of vehicle on the road, include (``Mod_Veh``)
 
 Update
 ~~~~~~~~~~~~~
-* [18/05/31] - Initial release - kyunghan
+* [18/05/31] - Initial release - Kyunghan
+* [18/06/05] - Modification of lon control - Kyunghan
 """
 # import python lib modules
 from math import pi, sin, cos, atan
@@ -33,59 +39,29 @@ you can declare other sampling time in application as vairable ``Ts``
 """
 class Mod_Env:
     """
-    Module description here
-
-    ConfigVariables:
-        * conf_rw_wheel
-        * conf_jw_body
-        * conf_brk_coef
-        * conf_acc_coef
-        * conf_veh_len
-        * ...
-
-    Submodules:
-        * Body_config:
-        * Dyn_config:
-        * Lon_driven_in:
-        * ...
-
-    Operation:
-        Description operation here::
-
-            !!!Make operation diagram here!!!
-            # Module_name(in//out)
-            Motor_control(t_mot, w_mot // des_torque)
-                >> Motor_driven(t_mot, w_mot // v_mot)
-                    >> Motor_elec_dynamics, Motor_mech_dynamics, Drive_shaft_dynamics
-                >> Motor_torque_system(v_mot // des_torque)
-
+    * Environment module: include road information (``road_x``, ``road_y``)
     """
     def __init__(self, road_array_x_in, road_array_y_in, start_road_len = 0):
         self.road_x = road_array_x_in
         self.road_y = road_array_y_in
+        self.Env_config(road_array_x_in)
+        self.Road_static_object(start_road_len)
+
+
+    def Env_config(self, road_array_x_in, conf_mincurv_value = 0.001):
         self.object_list = [type_objective() for _ in range(len(road_array_x_in))]
-        self.Road_config(start_road_len)
+        self.conf_mincurv_val = conf_mincurv_value
 
-    def Road_config(self, start_road_len = 0):
-        """Function overview here
 
-        Functional description
+    def Road_static_object(self, start_road_len = 0):
+        """Determine road static objects
 
-        Code example wirght follows::
+        Arrange road length and road curvature according to global road information (``road_x``, ``road_y``)
 
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        Include:
 
-        Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
+            * ``Mod_Env(Road_curve_def)``: Determine road curve position and curvature value
 
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
         """
         road_array_x_in = self.road_x
         road_array_y_in = self.road_y
@@ -103,56 +79,35 @@ class Mod_Env:
         self.object_list = self.Road_curve_def(road_array_x_in, road_array_y_in, loc_env_road_s)
 
     def Obj_add (self, object_in, object_param_in, object_s_location):
-        """Function overview here
-
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        """Add one object on the road
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
-
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+            * object_in: Set the object class ('Tl', 'Curve', ..)
+            * object_param_in: Set the object parameter ('Curvature', 'State')
+            * object_s_location: Set the object location on the road
         """
         loc_env_road_s = self.road_len
         tmp_s_index = np.min(np.where(loc_env_road_s >= object_s_location)) - 1
         self.object_list[tmp_s_index].add_object(object_in,object_param_in,object_s_location)
 
-    def Road_curve_def(self, road_array_x_in, road_array_y_in, loc_env_road_s, conf_curve_val = 0.001):
-        """Function overview here
+    def Road_curve_def(self, road_array_x_in, road_array_y_in, loc_env_road_s):
+        """Determine curve information from road data
 
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        Calculate cuvature using road data then add curve object to static object list
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
+            * road_array_x_in: Horizontal geometric information of road
+            * road_array_y_in: Vertical geometric information of road
+            * loc_env_road_s: Road length information
 
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
+        Returns:
+            * object_list: Road object list for curve information
         """
         object_list = [type_objective() for _ in range(len(road_array_x_in))]
         [R_out, x_c_out, y_c_out, circle_index, mr_o, mt_o] = Calc_Radius(road_array_x_in, road_array_y_in, 3)
         tmp_Curve = 1/R_out
         tmp_Curve_Filt = Filt_MovAvg(tmp_Curve,3)
-        tmp_Curve_index = np.arange(len(road_array_x_in))[tmp_Curve_Filt >= conf_curve_val]
+        tmp_Curve_index = np.arange(len(road_array_x_in))[tmp_Curve_Filt >= self.conf_mincurv_val]
         self.road_curve = tmp_Curve
         for i in range(len(tmp_Curve_index)):
             tmp_s_index = tmp_Curve_index[i]
@@ -160,25 +115,14 @@ class Mod_Env:
         return object_list
 
     def Vehicle_init_config(self, veh_mod, road_index = 0):
-        """Function overview here
+        """Set initial position and heading angle of vehicle on road model
 
-        Functional description
-
-        Code example wirght follows::
-
-            >>> [w_mot, t_mot, t_load] = Motor_control(t_mot_des)
-            ...
+        Include ``Mod_Veh`` when initialize
 
         Args:
-            * Input parameters here
-            * t_mot_des:
-            * w_shaft:
-            * ...
+            * veh_mod: Vehicle module
+            * road_index: Road length index for vehicle position
 
-        returns:
-            * Return of function here
-            * w_mot: motor rotational speed [rad/s]
-            * t_load: load torque from body model [Nm]
         """
         veh_mod.pos_x_veh = self.road_x[road_index]
         veh_mod.pos_y_veh = self.road_y[road_index]

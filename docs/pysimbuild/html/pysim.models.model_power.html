@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pysim models - vehicle model" href="pysim.models.model_vehicle.html" />
     <link rel="prev" title="pysim models" href="pysim.models.html" /> 
 
   
@@ -85,11 +86,11 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="pysim.html">pysim package</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="pysim.html#py-sim-pakcage-overview">py_sim pakcage overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pysim.html#pysim-pakcage-overview">pysim pakcage overview</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="pysim.html#subpackages">Subpackages</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="pysim.models.html">pysim models</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="pysim.models.html#simulation-models">simulation models</a></li>
-<li class="toctree-l4 current"><a class="reference internal" href="pysim.models.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="pysim.models.html#modules">Modules</a></li>
 </ul>
 </li>
 </ul>
@@ -168,21 +169,59 @@
 <span id="pysim-models-power-model"></span><h1>pysim models - power model<a class="headerlink" href="#module-pysim.models.model_power" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="simulation-model-power">
 <h2>Simulation model : Power<a class="headerlink" href="#simulation-model-power" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="author">
-<h3>Author<a class="headerlink" href="#author" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li>kyunghan &lt;<a class="reference external" href="mailto:kyunghah&#46;min&#37;&#52;&#48;gmail&#46;com">kyunghah<span>&#46;</span>min<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;</li>
-</ul>
-</div>
 <div class="section" id="description">
 <h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
-<li>Powertrain class
-- Motor class
-- Drivetrain class
-- Battery class</li>
-<li>Powertrain &lt;- Motor,Battery (Composition relationship)</li>
-<li>Motor &lt;-&gt; Battery (Aggregation relationship)</li>
+<li>Simulate power source of EV</li>
+</ul>
+</div>
+<div class="section" id="modules-summary">
+<h3>Modules summary<a class="headerlink" href="#modules-summary" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>Motor module - calculate mechanical loss and efficiency of motor</dt>
+<dd><ul class="first last">
+<li>Motor_config - configure motor parameters</li>
+<li>Motor_init_config - configure initial motor state</li>
+<li><dl class="first docutils">
+<dt>Motor_Power_system - calculate power loss based on motor efficiency</dt>
+<dd><ul class="first last">
+<li>Motor_Elec_system - calculate required motor current for generated torque</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Battery module - calculate battery power consumption</dt>
+<dd><ul class="first last">
+<li>Battery_config - configure battery parameters</li>
+<li>Battery_init_config - configure initial battery state</li>
+<li><dl class="first docutils">
+<dt>Calc_EnergyCons - calculate battey consumption current</dt>
+<dd><ul class="first last">
+<li>Calc_Voc - calculate open circuit voltage (Voc)</li>
+<li>Calc_SOC - calculate battery SOC</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>Calc_Vterm - calculate battery termination voltage (Vterm)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Power module - contain <code class="docutils literal notranslate"><span class="pre">motor</span> <span class="pre">module</span></code> and <code class="docutils literal notranslate"><span class="pre">battery</span> <span class="pre">module</span></code></dt>
+<dd><ul class="first last">
+<li>Motor_driven - calculate motor driven and battery consumption (include <code class="docutils literal notranslate"><span class="pre">Mod_Power(Motor_Power_system)</span></code>, <code class="docutils literal notranslate"><span class="pre">Mod_Battery(Calc_Current)</span></code>)</li>
+</ul>
+</dd>
+</dl>
+</li>
 </ul>
 </div>
 <div class="section" id="update">
@@ -196,35 +235,127 @@
 <li>[18/06/11] - Modification - kyunghan
 - Modify drivetrain module to body module
 - Modify model configurations</li>
+<li>[18/10/08] - Modification - kyunghan
+- Move the motor_driven function to power module
+- Battery module restructure</li>
 </ul>
 <dl class="class">
 <dt id="pysim.models.model_power.Mod_Battery">
 <em class="property">class </em><code class="descclassname">pysim.models.model_power.</code><code class="descname">Mod_Battery</code><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<ul class="simple">
+<li>Battery module</li>
+</ul>
 <dl class="method">
 <dt id="pysim.models.model_power.Mod_Battery.Battery_config">
-<code class="descname">Battery_config</code><span class="sig-paren">(</span><em>Voc=356.0</em>, <em>Etot=230400000.0</em>, <em>MaxPower=150000.0</em>, <em>R0=0.0016</em>, <em>SOC_init=70</em>, <em>R1_a=76.5218</em>, <em>R1_b=-7.9563</em>, <em>R1_c=23.8375</em>, <em>C1_a=-649.835</em>, <em>C1_b=-64.2924</em>, <em>C1_c=12692.1946</em>, <em>R2_a=5.2092</em>, <em>R2_b=-35.2367</em>, <em>R2_c=124.9467</em>, <em>C2_a=-78409.2788</em>, <em>C2_b=-0.0131</em>, <em>C2_c=30802.62582</em>, <em>Int_E=161280000.0</em>, <em>V1=0</em>, <em>V2=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Battery_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Battery_config" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">Battery_config</code><span class="sig-paren">(</span><em>Voc_base_voltage=356.0</em>, <em>E_tot=230400000.0</em>, <em>MaxPower=150000.0</em>, <em>R0=0.0016</em>, <em>R1_a=76.5218</em>, <em>R1_b=-7.9563</em>, <em>R1_c=23.8375</em>, <em>C1_a=-649.835</em>, <em>C1_b=-64.2924</em>, <em>C1_c=12692.1946</em>, <em>R2_a=5.2092</em>, <em>R2_b=-35.2367</em>, <em>R2_c=124.9467</em>, <em>C2_a=-78409.2788</em>, <em>C2_b=-0.0131</em>, <em>C2_c=30802.62582</em>, <em>Int_E=161280000.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Battery_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Battery_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure battery parameters</p>
+<dl class="docutils">
+<dt>Parameter:</dt>
+<dd><ul class="first last simple">
+<li>Base open circuit voltage</li>
+<li>Total energy</li>
+<li>Maximum power</li>
+<li>Internal resistance</li>
+<li>SOC table</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
-<dt id="pysim.models.model_power.Mod_Battery.Calc_Current">
-<code class="descname">Calc_Current</code><span class="sig-paren">(</span><em>Motor_Net_Power</em>, <em>AccPower=500</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Calc_Current"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Calc_Current" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="pysim.models.model_power.Mod_Battery.Battery_init_config">
+<code class="descname">Battery_init_config</code><span class="sig-paren">(</span><em>SOC_init=70</em>, <em>power_additional_set=500</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Battery_init_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Battery_init_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Configure initial battery states</p>
+<dl class="docutils">
+<dt>State:</dt>
+<dd><ul class="first last simple">
+<li>Open circuit voltage</li>
+<li>Termination voltage</li>
+<li>Internal voltage, currentm, energy</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_power.Mod_Battery.Calc_EnergyCons">
+<code class="descname">Calc_EnergyCons</code><span class="sig-paren">(</span><em>Motor_Net_Power</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Calc_EnergyCons"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Calc_EnergyCons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate energy consumption according to desired motor torque</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>Motor_Net_Power: motor required power [W]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>Current: battery current consumption [A]</li>
+</ul>
+</dd>
+<dt>Include:</dt>
+<dd><ul class="first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Battery(Calc_Voc)</span></code>: Calculate battery open circuit voltage</li>
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Battery(Calc_SOC)</span></code>: Calculate battery SOC</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="pysim.models.model_power.Mod_Battery.Calc_SOC">
-<code class="descname">Calc_SOC</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Calc_SOC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Calc_SOC" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">Calc_SOC</code><span class="sig-paren">(</span><em>current</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Calc_SOC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Calc_SOC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate battery state of charge</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>current: battery current consumption [A]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>SOC: State of charge [%]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
-<dt id="pysim.models.model_power.Mod_Battery.Calc_Voc_rate">
-<code class="descname">Calc_Voc_rate</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Calc_Voc_rate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Calc_Voc_rate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="pysim.models.model_power.Mod_Battery.Calc_Voc">
+<code class="descname">Calc_Voc</code><span class="sig-paren">(</span><em>input_soc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Calc_Voc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Calc_Voc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate open circuit voltage using interpolation table</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>input_soc: current SOC [%]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>Voc: battery open circuit voltage [V]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
-<dt id="pysim.models.model_power.Mod_Battery.Print_States">
-<code class="descname">Print_States</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Print_States"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Print_States" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="pysim.models.model_power.Mod_Battery.Calc_Vterm">
+<code class="descname">Calc_Vterm</code><span class="sig-paren">(</span><em>V1</em>, <em>V2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Battery.Calc_Vterm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Battery.Calc_Vterm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate battery termination voltage</p>
+<dl class="docutils">
+<dt>Arg:</dt>
+<dd><ul class="first last simple">
+<li>V1: battery internal voltage 1 [V]</li>
+<li>V1: battery internal voltage 2 [V]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>Vterm: termination voltage [V]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </dd></dl>
 
@@ -232,30 +363,81 @@
 <dt id="pysim.models.model_power.Mod_Motor">
 <em class="property">class </em><code class="descclassname">pysim.models.model_power.</code><code class="descname">Mod_Motor</code><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Motor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Motor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<ul class="simple">
+<li>Motor module</li>
+</ul>
 <dl class="method">
 <dt id="pysim.models.model_power.Mod_Motor.Motor_Elec_system">
 <code class="descname">Motor_Elec_system</code><span class="sig-paren">(</span><em>p_mot_elec</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Motor.Motor_Elec_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Motor.Motor_Elec_system" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Calculate motor electric current according to motor power</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>p_mot_elec: electric requried motor power [W]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>i_mot: electric current [A]</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="pysim.models.model_power.Mod_Motor.Motor_Power_system">
 <code class="descname">Motor_Power_system</code><span class="sig-paren">(</span><em>t_mot</em>, <em>w_mot</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Motor.Motor_Power_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Motor.Motor_Power_system" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Calculate required motor power with motor power loss</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>t_mot: motor torque [Nm]</li>
+<li>w_mot: motor rotational speed [rad/s]</li>
+</ul>
+</dd>
+<dt>Return:</dt>
+<dd><ul class="first last simple">
+<li>p_mot_elec: electric requried motor power [W??]</li>
+</ul>
+</dd>
+<dt>Include:</dt>
+<dd><ul class="first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Motor(Motor_Elec_system)</span></code>: Calculate motor electric current according to motor power</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="method">
 <dt id="pysim.models.model_power.Mod_Motor.Motor_config">
 <code class="descname">Motor_config</code><span class="sig-paren">(</span><em>loss_mech_C0=0.0206</em>, <em>loss_mech_C1=-2.135e-05</em>, <em>loss_copper_C0=0.2034</em>, <em>loss_stray_C0=3.352e-06</em>, <em>loss_stray_C1=-2.612e-09</em>, <em>loss_iron_C0=1e-06</em>, <em>loss_iron_C1=1.55</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Motor.Motor_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Motor.Motor_config" title="Permalink to this definition">¶</a></dt>
-<dd><p>Motor parameter configuration</p>
-<p>Parameters not specified are declared as default values</p>
-<p>If you want set a specific parameter don't use this function,
+<dd><p>Motor parameter configuration
+Parameters not specified are declared as default values
+If you want set a specific parameter don't use this function,
 just type:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Mod_PowerTrain</span><span class="o">.</span><span class="n">conf_rm_mot</span> <span class="o">=</span> <span class="mf">0.2</span>
 <span class="gp">...</span>
 </pre></div>
 </div>
 <dl class="docutils">
-<dt>Args:</dt>
+<dt>Parameters:</dt>
 <dd>Motor parameter values, default values are setted</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_power.Mod_Motor.Motor_init_config">
+<code class="descname">Motor_init_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Motor.Motor_init_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Motor.Motor_init_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize motor state</p>
+<dl class="docutils">
+<dt>State:</dt>
+<dd><ul class="first last simple">
+<li>Motor voltage and current</li>
+<li>Motor rotational speed</li>
+<li>Motor torque</li>
+<li>Motor power loss</li>
+</ul>
+</dd>
 </dl>
 </dd></dl>
 
@@ -265,24 +447,33 @@ just type:</p>
 <dt id="pysim.models.model_power.Mod_Power">
 <em class="property">class </em><code class="descclassname">pysim.models.model_power.</code><code class="descname">Mod_Power</code><span class="sig-paren">(</span><em>Mod_Motor_loc=&lt;pysim.models.model_power.Mod_Motor object&gt;</em>, <em>Mod_Battery_loc=&lt;pysim.models.model_power.Mod_Battery object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Power"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Power" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<ul class="simple">
+<li>Power module: Set the <code class="docutils literal notranslate"><span class="pre">motor</span></code> and <code class="docutils literal notranslate"><span class="pre">battery</span></code> model when initialization</li>
+</ul>
 <dl class="method">
 <dt id="pysim.models.model_power.Mod_Power.Motor_driven">
 <code class="descname">Motor_driven</code><span class="sig-paren">(</span><em>torque_set=0</em>, <em>w_drivtrain=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_power.html#Mod_Power.Motor_driven"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_power.Mod_Power.Motor_driven" title="Permalink to this definition">¶</a></dt>
-<dd><p>Motor driven function</p>
-<p>Generate motor output(torque, speed) and load torque according to input voltage and wheel speed (shaft speed = wheel speed)</p>
-<p>Contain theree modules <code class="docutils literal notranslate"><span class="pre">Elecic</span> <span class="pre">dynamics</span></code>, <code class="docutils literal notranslate"><span class="pre">Menahicla</span> <span class="pre">dynamics</span></code>, <code class="docutils literal notranslate"><span class="pre">Shaft</span> <span class="pre">dynamics</span></code></p>
+<dd><p>Simulate motor driven function
+Calculate battery power consumption and regeneration according to current motor torque and rotational speed
+Include motor and battery modules</p>
 <dl class="docutils">
 <dt>Args:</dt>
 <dd><ul class="first last simple">
-<li>v_in: motor input voltage [V]</li>
+<li>torque_set: generated motor torque set [Nm]</li>
 <li>w_shaft: rotational speed of drive shaft from body model [rad/s]</li>
 </ul>
 </dd>
-<dt>returns:</dt>
+<dt>Returns:</dt>
 <dd><ul class="first last simple">
 <li>t_mot: motor torque [Nm]</li>
 <li>w_mot: motor rotational speed [rad/s]</li>
 <li>t_load: load torque from body model [Nm]</li>
+</ul>
+</dd>
+<dt>Include:</dt>
+<dd><ul class="first last simple">
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Motor(Motor_Power_system)</span></code>: Calculate required electric power for desired torque</li>
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Battery(Calc_EnergyCons)</span></code>: Calculate electric power consumption</li>
 </ul>
 </dd>
 </dl>
@@ -308,6 +499,8 @@ just type:</p>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pysim.models.model_vehicle.html" class="btn btn-neutral float-right" title="pysim models - vehicle model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="pysim.models.html" class="btn btn-neutral" title="pysim models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

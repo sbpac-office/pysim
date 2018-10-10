@@ -7,10 +7,13 @@ pysim models
     :show-inheritance:
 
 
-Subpackages
+Modules
 -----------
 
 .. toctree::
    :maxdepth: 1
 
    pysim.models.model_power
+   pysim.models.model_vehicle
+   pysim.models.model_environment
+   pysim.models.model_maneuver

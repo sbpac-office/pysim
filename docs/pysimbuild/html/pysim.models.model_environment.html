@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="python" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="python" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pysim models - environment model &mdash; pysim 0.9 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="pysim models - maneuver model" href="pysim.models.model_maneuver.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pysim
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.9
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pysim.html">pysim package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pysim.html#pysim-pakcage-overview">pysim pakcage overview</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pysim.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pysim.models.html">pysim models</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pysim.models.html#simulation-models">simulation models</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="pysim.models.html#subpackages">Subpackages</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pysim</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="pysim.html">pysim package</a> &raquo;</li>
+        
+          <li><a href="pysim.models.html">pysim models</a> &raquo;</li>
+        
+      <li>pysim models - environment model</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/pysim.models.model_environment.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pysim.models.model_environment">
+<span id="pysim-models-environment-model"></span><h1>pysim models - environment model<a class="headerlink" href="#module-pysim.models.model_environment" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="simulation-model-environment">
+<h2>Simulation model : Environment<a class="headerlink" href="#simulation-model-environment" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="description">
+<h3>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Import road information for driving environment</li>
+</ul>
+</div>
+<div class="section" id="modules-summary">
+<h3>Modules summary<a class="headerlink" href="#modules-summary" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>Env module - environment module</dt>
+<dd><ul class="first last">
+<li>Env_config - configure environment</li>
+<li><dl class="first docutils">
+<dt>Road_static_object - determine road static objects</dt>
+<dd><ul class="first last">
+<li>Road_curve_def - set parameters</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>Obj_add - add static object (Tl, Curve)</li>
+<li>Veh_position_init - Set initial position of vehicle on the road, include (<code class="docutils literal notranslate"><span class="pre">Mod_Veh</span></code>)</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="update">
+<h3>Update<a class="headerlink" href="#update" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>[18/05/31] - Initial release - Kyunghan</li>
+<li>[18/06/05] - Modification of lon control - Kyunghan</li>
+</ul>
+<dl class="class">
+<dt id="pysim.models.model_environment.Mod_Env">
+<em class="property">class </em><code class="descclassname">pysim.models.model_environment.</code><code class="descname">Mod_Env</code><span class="sig-paren">(</span><em>road_array_x_in</em>, <em>road_array_y_in</em>, <em>start_road_len=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_environment.html#Mod_Env"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_environment.Mod_Env" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<ul class="simple">
+<li>Environment module: include road information (<code class="docutils literal notranslate"><span class="pre">road_x</span></code>, <code class="docutils literal notranslate"><span class="pre">road_y</span></code>)</li>
+</ul>
+<dl class="method">
+<dt id="pysim.models.model_environment.Mod_Env.Env_config">
+<code class="descname">Env_config</code><span class="sig-paren">(</span><em>road_array_x_in</em>, <em>conf_mincurv_value=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_environment.html#Mod_Env.Env_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_environment.Mod_Env.Env_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_environment.Mod_Env.Obj_add">
+<code class="descname">Obj_add</code><span class="sig-paren">(</span><em>object_in</em>, <em>object_param_in</em>, <em>object_s_location</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_environment.html#Mod_Env.Obj_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_environment.Mod_Env.Obj_add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add one object on the road</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>object_in: Set the object class ('Tl', 'Curve', ..)</li>
+<li>object_param_in: Set the object parameter ('Curvature', 'State')</li>
+<li>object_s_location: Set the object location on the road</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_environment.Mod_Env.Road_curve_def">
+<code class="descname">Road_curve_def</code><span class="sig-paren">(</span><em>road_array_x_in</em>, <em>road_array_y_in</em>, <em>loc_env_road_s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_environment.html#Mod_Env.Road_curve_def"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_environment.Mod_Env.Road_curve_def" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine curve information from road data</p>
+<p>Calculate cuvature using road data then add curve object to static object list</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>road_array_x_in: Horizontal geometric information of road</li>
+<li>road_array_y_in: Vertical geometric information of road</li>
+<li>loc_env_road_s: Road length information</li>
+</ul>
+</dd>
+<dt>Returns:</dt>
+<dd><ul class="first last simple">
+<li>object_list: Road object list for curve information</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_environment.Mod_Env.Road_static_object">
+<code class="descname">Road_static_object</code><span class="sig-paren">(</span><em>start_road_len=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_environment.html#Mod_Env.Road_static_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_environment.Mod_Env.Road_static_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine road static objects</p>
+<p>Arrange road length and road curvature according to global road information (<code class="docutils literal notranslate"><span class="pre">road_x</span></code>, <code class="docutils literal notranslate"><span class="pre">road_y</span></code>)</p>
+<p>Include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">Mod_Env(Road_curve_def)</span></code>: Determine road curve position and curvature value</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="pysim.models.model_environment.Mod_Env.Vehicle_init_config">
+<code class="descname">Vehicle_init_config</code><span class="sig-paren">(</span><em>veh_mod</em>, <em>road_index=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pysim/models/model_environment.html#Mod_Env.Vehicle_init_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pysim.models.model_environment.Mod_Env.Vehicle_init_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set initial position and heading angle of vehicle on road model</p>
+<p>Include <code class="docutils literal notranslate"><span class="pre">Mod_Veh</span></code> when initialize</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><ul class="first last simple">
+<li>veh_mod: Vehicle module</li>
+<li>road_index: Road length index for vehicle position</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="pysim.models.model_environment.Ts">
+<code class="descclassname">pysim.models.model_environment.</code><code class="descname">Ts</code><em class="property"> = 0.01</em><a class="headerlink" href="#pysim.models.model_environment.Ts" title="Permalink to this definition">¶</a></dt>
+<dd><p>global vairable: simulation sampling timeself.</p>
+<p>you can declare other sampling time in application as vairable <code class="docutils literal notranslate"><span class="pre">Ts</span></code></p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="pysim.models.model_maneuver.html" class="btn btn-neutral" title="pysim models - maneuver model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Kyunghan.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.9',
+            LANGUAGE:'python',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
