@@ -50,8 +50,13 @@ class Mod_Driver:
     * Driver module
     """
     def __init__(self):
+        self.Ts_Loc = globals()['Ts']
         self.set_driver_char('Normal')
-
+        self.vel_hyst_brk = 0.3
+        self.vel_hyst_acc = 0.5
+        self.shift_time = 0.1/self.Ts_Loc
+        self.max_acc = 5
+        
     def set_driver_char(self, DriverChar = 'Normal'):
         """Set driver parameter values according to characteristics
 
@@ -61,16 +66,16 @@ class Mod_Driver:
             * Defensive
         """
         if DriverChar == 'Normal':
-            self.set_driver_param(P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0, shift_time = 0.5, max_acc = 4)
+            self.set_driver_ctl_gain(P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0)
         elif DriverChar == 'Aggressive':
-            self.set_driver_param(P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0, shift_time = 0.5, max_acc = 4)
+            self.set_driver_ctl_gain(P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0)
         elif DriverChar == 'Defensive':
-            self.set_driver_param(P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0, shift_time = 0.5, max_acc = 4)
+            self.set_driver_ctl_gain(P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0)
         else:
             print('Set the driver only = [''Normal'', ''Aggressive'', ''Defensive'']')
-            self.set_driver_param(P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0, shift_time = 0.5, max_acc = 4)
+            self.set_driver_ctl_gain(P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0)
 
-    def set_driver_param(self, P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0, shift_time = 0.5, max_acc = 4):
+    def set_driver_ctl_gain(self, P_gain_lon = 2, I_gain_lon = 0.5, D_gain_lon = 0, P_gain_lat = 0.001, I_gain_lat = 0.0001, D_gain_lat = 0, P_gain_yaw = 0.1, I_gain_yaw = 0.1, D_gain_yaw = 0):
         """Set driver parameter values
 
         Parameters:
@@ -83,7 +88,8 @@ class Mod_Driver:
         self.P_gain_lon = P_gain_lon; self.I_gain_lon = I_gain_lon; self.D_gain_lon = D_gain_lon
         self.P_gain_lat = P_gain_lat; self.I_gain_lat = I_gain_lat; self.D_gain_lat = D_gain_lat
         self.P_gain_yaw = P_gain_yaw; self.I_gain_yaw = I_gain_yaw; self.D_gain_yaw = D_gain_yaw
-        self.shift_time = shift_time; self.max_acc = max_acc
+        
+
 
 class Mod_Behavior:
     """
@@ -95,10 +101,12 @@ class Mod_Behavior:
         self.stStatic = type_drvstate()
         self.stDynamic = type_drvstate()
         self.Maneuver_config()
-        self.Drver_set(Driver)
+        self.Driver_set(Driver)
         self.Ts_Loc = globals()['Ts']
         self.u_acc = 0
+        self.u_acc_raw = 0
         self.u_brk = 0
+        self.u_brk_raw = 0
         self.u_steer = 0
         self.u_steer_offset = 0
         self.u_steer_yaw = 0
@@ -106,9 +114,7 @@ class Mod_Behavior:
         self.veh_speed_set_dynamic = 0
         self.veh_speed_set_static = 0
 
-
-
-    def Drver_set(self, DriverSet):
+    def Driver_set(self, Driver):
         """Arrange driver parameters for behavior controller
 
         Define PID controller for velocity, offset, yaw
@@ -116,18 +122,23 @@ class Mod_Behavior:
         Args:
             * DriverSet: driver parameter set
         """
-        self.Driver = DriverSet
-        self.Lon_Controller_acc = type_pid_controller(DriverSet.P_gain_lon, DriverSet.I_gain_lon, DriverSet.D_gain_lon)
-        self.Lon_Controller_brk = type_pid_controller(DriverSet.P_gain_lon, DriverSet.I_gain_lon, DriverSet.D_gain_lon)
-        self.Lat_Controller_offset = type_pid_controller(DriverSet.P_gain_lat, DriverSet.I_gain_lat, DriverSet.D_gain_lat)
-        self.Lat_Controller_yaw = type_pid_controller(DriverSet.P_gain_yaw, DriverSet.I_gain_yaw, DriverSet.D_gain_yaw)
-        self.stLonControl = 'idle'
-        self.Filt_LonShiftTrnsDelay = type_trnsition_delay(DriverSet.shift_time)
+        self.Driver = Driver
+        self.Lon_Controller_acc = type_pid_controller(Driver.P_gain_lon, Driver.I_gain_lon, Driver.D_gain_lon)
+        self.Lon_Controller_brk = type_pid_controller(Driver.P_gain_lon, Driver.I_gain_lon, Driver.D_gain_lon)
+        self.Lat_Controller_offset = type_pid_controller(Driver.P_gain_lat, Driver.I_gain_lat, Driver.D_gain_lat)
+        self.Lat_Controller_yaw = type_pid_controller(Driver.P_gain_yaw, Driver.I_gain_yaw, Driver.D_gain_yaw)
+        self.stLonControl = 'Acc_On'
+        self.stLonControlTrnst = 0
+        self.cntTrnst = 0
+        self.conf_brk_on_hystval = Driver.vel_hyst_brk        
+        self.conf_acc_on_hystvel = Driver.vel_hyst_acc
+        self.conf_shift_time = Driver.shift_time
+        self.Filt_LonShiftTrnsDelay = type_trnsition_delay(Driver.shift_time)
 
     def Maneuver_config(self, cruise_speed_set = 15, mincv_speed_set = 5,
                         conf_curve_speed_set_curvcoef = 1000, conf_curve_speed_set_discoef = 0.01,
                         transition_dis = 20, forecast_dis = 200, cf_dis = 120, lat_off = 0.5,
-                        filtnum_pedal = 0.1, filtnum_steer = 0.1, filtnum_spdset = 1):
+                        filtnum_pedal = 0.2, filtnum_steer = 0.1, filtnum_spdset = 1):
         """Configure driver's maneuver
 
         Parameters:
@@ -147,7 +158,7 @@ class Mod_Behavior:
         self.conf_curve_speed_set_curvcoef = conf_curve_speed_set_curvcoef
         self.conf_curve_speed_set_discoef = conf_curve_speed_set_discoef
 
-    def Static_state_recog(self,static_obj_in, road_len, veh_position_s):
+    def Static_state_recog(self,static_obj_in, veh_position_s, road_len):
         """Static state recognition for driving conditions
 
         Determine current longitudinal state for driving conditions
@@ -300,7 +311,15 @@ class Mod_Behavior:
 
     def Lon_control(self,veh_vel_set, veh_vel):
         """Determine driver's acceleration and brake pedal position according to velocity set point
-
+        
+        1 - Acc on: Acc control mode with hysteresis
+        2 - Brk on: Brk control mode with hysteresis
+        3 - Transition(Idle):          
+            - Pre vehicle state (Acc or Dec)
+            - Switch: control state 
+               - Pre vehicle state: transition count = 0, control state = pre control state
+               - Other control state: transition count +1 (when count >= shift time: oter control mode on)
+               
         Args:
             * veh_vel_set: Velocity set point [m/s]
             * veh_vel: Current vehicle velocity [m/s]
@@ -309,60 +328,77 @@ class Mod_Behavior:
             * u_acc: Driver's acceleration pedal position [-]
             * u_brk: Driver's brake pedal position [-]
         """
-        # State definition - Hysteresis filter with shift time
-        vel_error = veh_vel_set - veh_vel
-
-        if vel_error >= 0:
-            control_mode = 1
-        elif vel_error < -0.01:
-            control_mode = 2
+        # vehicle state definition        
+        if (self.stLonControl == 'Acc_On'):
+            if (veh_vel - veh_vel_set) >= self.conf_brk_on_hystval:
+                stCtlMod = 'Idle_Acc'
+                self.cntTrnst = 0
+                fTrnst = 'on'       
+            else:
+                stCtlMod = 'Acc_On'
+                fTrnst = 'off'
+                self.cntTrnst = 0
+        elif (self.stLonControl == 'Idle_Acc'):
+            if (veh_vel_set - veh_vel) >= 0:
+                stCtlMod = 'Acc_On'
+                self.cntTrnst = 0
+                fTrnst = 'off'
+            elif self.cntTrnst >= self.conf_shift_time:                
+                stCtlMod = 'Brk_On'
+                self.cntTrnst = 0
+                fTrnst = 'shift'
+            else:
+                stCtlMod = 'Idle_Acc'
+                self.cntTrnst = self.cntTrnst + 1
+                fTrnst = 'on'
+                self.Lon_Controller_acc.I_val_old = 0
+        elif (self.stLonControl == 'Idle_Brk'):
+            if (veh_vel - veh_vel_set) >= 0:
+                stCtlMod = 'Brk_On'
+                self.cntTrnst = 0
+                fTrnst = 'off'                                
+            elif self.cntTrnst >= self.conf_shift_time:                
+                stCtlMod = 'Acc_On'
+                self.cntTrnst = 0
+                fTrnst = 'shift'
+            else:
+                stCtlMod = 'Idle_Brk'
+                self.cntTrnst = self.cntTrnst + 1
+                fTrnst = 'on'
+                self.Lon_Controller_brk.I_val_old = 0
         else:
-            control_mode = 0
+            if (veh_vel_set - veh_vel) >= self.conf_acc_on_hystvel:
+                stCtlMod = 'Idle_Brk'
+                self.cntTrnst = 0
+                fTrnst = 'on'          
+            else:
+                stCtlMod = 'Brk_On'
+                fTrnst = 'off'
+                self.cntTrnst = 0             
 
-        control_mode_filt = self.Filt_LonShiftTrnsDelay.filt_delay(control_mode)
-
-        u_acc_ctl = self.Lon_Controller_acc.Control(veh_vel_set,veh_vel)
-        u_brk_ctl = self.Lon_Controller_brk.Control(veh_vel,veh_vel_set)
-
-        if control_mode == 1:
-            u_acc = u_acc_ctl;
-            u_acc_raw = sorted((0., u_acc, 1.))[1]
-            u_acc_filt = Filt_LowPass(u_acc_raw, self.u_acc, self.conf_filtnum_pedal, self.Ts_Loc)
-            u_brk_filt = 0.;
-            self.Lon_Controller_brk.I_val_old = 0;
-        elif control_mode == 2:
-            u_brk = u_brk_ctl;
-            u_brk_raw = sorted((0., u_brk, 1.))[1]
-            u_brk_filt = Filt_LowPass(u_brk_raw, self.u_brk, self.conf_filtnum_pedal, self.Ts_Loc)
-            u_acc_filt = 0.;
-            self.Lon_Controller_acc.I_val_old = 0;
+        u_acc_in_ctl = self.Lon_Controller_acc.Control(veh_vel_set, veh_vel)        
+        u_acc_in_filt = Filt_LowPass(u_acc_in_ctl, self.u_acc, self.conf_filtnum_pedal, Ts)
+        u_brk_in_ctl = self.Lon_Controller_brk.Control(veh_vel, veh_vel_set)
+        u_brk_in_filt = Filt_LowPass(u_brk_in_ctl, self.u_brk, self.conf_filtnum_pedal, Ts)
+        
+        if stCtlMod == 'Acc_On':            
+            u_acc_in = sorted((0,u_acc_in_filt,100))[1]                        
+            u_brk_in = 0
+            self.Lon_Controller_brk.I_val_old = 0
+        elif stCtlMod == 'Brk_On':
+            u_acc_in = 0
+            self.Lon_Controller_acc.I_val_old = 0            
+            u_brk_in = sorted((0,u_brk_in_filt,100))[1]            
         else:
-            u_brk_raw = 0
-            u_acc_raw = 0
-            u_acc_filt = Filt_LowPass(u_acc_raw, self.u_acc, self.conf_filtnum_pedal, self.Ts_Loc)
-            u_brk_filt = Filt_LowPass(u_brk_raw, self.u_brk, self.conf_filtnum_pedal, self.Ts_Loc)
-            self.Lon_Controller_brk.I_val_old = 0;
-            self.Lon_Controller_acc.I_val_old = 0;
-        # Set value
-#        if stControl == 'acc':
-#            acc_out_raw = trq_set/100
-#            acc_out = Filt_LowPass(acc_out_raw, self.u_acc,self.conf_act_filt ,self.Ts_Loc)
-#            brk_out = 0
-#        elif stControl == 'brk':
-#            acc_out = 0
-#            brk_out_raw = -trq_set/100
-#            brk_out = Filt_LowPass(brk_out_raw, self.u_brk,self.conf_act_filt ,self.Ts_Loc)
-#        elif stControl == 'idle':
-#            acc_out = 0
-#            brk_out = 0
-#        else:
-#            acc_out = 0
-#            brk_out = 0
-#        self.trq_set_lon = trq_set
+            u_acc_in = 0
+            u_brk_in = 0
 
-        self.stLonControl = control_mode_filt
-        self.u_acc = u_acc_filt
-        self.u_brk = u_brk_filt
+        self.stLonControl = stCtlMod
+        self.stLonControlTrnst = fTrnst
+        self.u_acc = u_acc_in
+        self.u_brk = u_brk_in
+        self.u_acc_raw = u_acc_in_filt
+        self.u_brk_raw = u_brk_in_filt
         return [self.u_acc, self.u_brk]
 
     def Lon_behavior(self,static_obj_in, veh_position_s, road_len, veh_speed, pre_veh_speed = 'None', pre_veh_reldis = 250):

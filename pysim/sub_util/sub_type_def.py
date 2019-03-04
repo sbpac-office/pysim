@@ -103,6 +103,10 @@ class type_DataLog:
         return return_profile_list
     def get_profile_value_one(self, get_name_set):
         return np.array(self.DataProfile[get_name_set])
+    
+    def set_reset_log(self, ):
+        for i in self.NameSet:
+            self.DataProfile[i] = []
 
 class type_hyst:
     def __init__(self, CriUp, CriLow, TrnsTime = 0):

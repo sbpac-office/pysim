@@ -41,7 +41,7 @@ Update
   - Battery module restructure
 """
 # simulation sampling time
-Ts = 0.01
+#Ts = 0.01
 """global vairable: simulation sampling timeself.
 
 you can declare other sampling time in application as vairable ``Ts``
@@ -54,7 +54,7 @@ class Mod_Motor:
     """
     * Motor module
     """
-    def __init__(self):
+    def __init__(self, Ts = 0.01):
         self.Motor_init_config()
         self.Motor_config()
         self.Ts_loc = Ts
@@ -130,10 +130,11 @@ class Mod_Battery:
     """
     * Battery module
     """
-    def __init__(self):
+    def __init__(self, Ts = 0.01):
         # Additional power consumption [0.1 W]
         self.Battery_config()
         self.Battery_init_config()
+        self.Loc_Ts = Ts
 
     def Battery_config(self, Voc_base_voltage = 356.0, E_tot = 230400000.0, MaxPower = 150000.0,
                        R0 = 0.0016, R1_a=76.5218, R1_b=-7.9563, R1_c=23.8375,
@@ -199,9 +200,9 @@ class Mod_Battery:
         Return:
             * SOC: State of charge [%]
         """
-        self.V1 = self.V1 + (current/self.C1 - self.V1/(self.R1*self.C1) )*Ts
-        self.V2 = self.V2 + (current/self.C2 - self.V2/(self.R2*self.C2) )*Ts
-        self.Internal_Energy = self.Internal_Energy - self.Voc * current * Ts
+        self.V1 = self.V1 + (current/self.C1 - self.V1/(self.R1*self.C1) )*self.Loc_Ts
+        self.V2 = self.V2 + (current/self.C2 - self.V2/(self.R2*self.C2) )*self.Loc_Ts
+        self.Internal_Energy = self.Internal_Energy - self.Voc * current * self.Loc_Ts
         self.SOC = self.Internal_Energy / self.conf_Etot * 100
         return self.SOC
 
@@ -252,6 +253,8 @@ class Mod_Power():
     def __init__(self, Mod_Motor_loc = Mod_Motor(), Mod_Battery_loc = Mod_Battery()):
         self.ModMotor = Mod_Motor_loc
         self.ModBattery = Mod_Battery_loc
+        self.t_mot = 0
+        self.w_mot = 0
 
     def Motor_driven(self, torque_set = 0, w_drivtrain = 0):
         """Simulate motor driven function

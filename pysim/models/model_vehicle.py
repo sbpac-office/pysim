@@ -62,7 +62,7 @@ from pysim.sub_util.sub_type_def import type_pid_controller, type_drvstate, type
 # import config data modules
 
 # simulation sampling time
-Ts = 0.01
+#Ts = 0.01
 """global vairable: simulation sampling timeself.
 
 you can declare other sampling time in application as vairable ``Ts``
@@ -74,7 +74,7 @@ class Mod_Body:
     """
     * Body module
     """
-    def __init__(self):
+    def __init__(self, Ts = 0.01):
         self.t_mot_load = 0
         self.t_driven = 0
         self.t_wheel_load = 0
@@ -84,7 +84,8 @@ class Mod_Body:
         self.w_motor = 0
         self.w_vehicle = 0
         self.Drivetrain_config()
-        self.Ts_loc = globals()['Ts']
+        print(Ts)
+        self.Ts_loc = Ts
 
     def Drivetrain_config(self, conf_rd_wheel = 0.301, conf_jw_wheel = 0.1431, conf_jw_diff_in = 0.015, conf_jw_diff_out = 0.015, conf_jw_trns_out = 0.015, conf_jw_trns_in = 0.01, conf_jw_mot = 0.005,
                     conf_eff_trns = 0.96, conf_eff_diff = 0.9796, conf_eff_diff_neg = 0.9587, conf_gear = 6.058, conf_mass_veh = 1200, conf_mass_add = 0):
@@ -102,7 +103,6 @@ class Mod_Body:
             Momentum of inertia: shaft, wheel
             Drive shaft efficiency, gear ratio
         """
-        self.conf_veh_len = conf_veh_len
         self.conf_gear = conf_gear
         self.conf_mass_veh = conf_mass_veh + conf_mass_add
         self.conf_rd_wheel = conf_rd_wheel
@@ -245,12 +245,13 @@ class Mod_Veh:
     * Vehicle module: Set the ``power`` and ``body`` model when initialization
 
     """
-    def __init__(self,powertrain_model,drivetrain_model):
+    def __init__(self,powertrain_model,drivetrain_model,Ts = 0.01):
         self.ModPower = powertrain_model
         self.ModDrive = drivetrain_model
-        self.Ts_loc = globals()['Ts']
+        self.Ts_loc = Ts
         self.Veh_init_config()
         self.Veh_config()
+        print('aa~')
 
     def Veh_init_config(self, x_veh = 0, y_veh = 0, s_veh = 0, n_veh = 0, psi_veh = 0, vel_veh = 0, theta_wheel = 0):
         """Initialize vehicle state
@@ -267,6 +268,10 @@ class Mod_Veh:
         self.psi_veh = psi_veh
         self.vel_veh = vel_veh
         self.the_wheel = theta_wheel
+        self.veh_acc = 0
+        self.t_mot_reg_set = 0
+        self.t_brake = 0
+        self.t_mot = 0
 
     def Veh_config(self, conf_drag_air_coef = 0, conf_add_weight = 0, conf_drag_ca = 143.06, conf_drag_cc = 0.4405,
                    conf_veh_len = 2,conf_acc_trq_fac = 82.76, conf_brk_trq_fac = 501.8, conf_motreg_max = 100):
@@ -306,7 +311,7 @@ class Mod_Veh:
             * s, n position: Road relative vehicle position [m]
             * psi_veh: Vehicle heading angle [rad]
         """
-        veh_len = self.ModDrive.conf_veh_len
+        veh_len = self.conf_veh_len
         ang_veh = the_wheel + self.psi_veh
         x_dot = vel_veh*cos(ang_veh)
         self.pos_x_veh = self.pos_x_veh + x_dot*self.Ts_loc
@@ -367,7 +372,7 @@ class Mod_Veh:
         w_wheel = self.ModDrive.w_wheel
         # Calculation of torque set
         t_mot_set = self.Acc_system(u_acc)
-        t_brk, t_mot_reg_set = self.Brake_system(u_brake)
+        t_brk, t_mot_reg_set = self.Brake_system(u_brake, self.t_mot_reg_set)
         t_drag, f_drag = self.Drag_system(self.vel_veh)
         # Power control
         t_mot_des = t_mot_set - t_mot_reg_set
@@ -462,26 +467,29 @@ class Mod_Veh:
             * t_brake: Braking torque [Nm]
             * t_mot_reg: Regenerative motor torque [Nm]
         """
-#        if self.w_wheel <= 0.01:
-#            t_brake_set = 0
-#        else:
-#            t_brake_set = u_brake * self.conf_brk_coef
+
         t_brake_set = u_brake * self.conf_brk_trq_fac
         t_brake_set_mot_eq = t_brake_set/self.ModDrive.conf_gear
+
         # Regeneration control
         if self.swtRegCtl == 1:
+        # Maximum regen
             if (self.conf_motreg_max - t_brake_set_mot_eq) >= 0:
                 t_mot_reg = t_brake_set_mot_eq
                 t_brake = 0
             else:
-                t_brake = (t_brake_set - self.conf_motreg_max/self.ModDrive.conf_gear)
                 t_mot_reg = self.conf_motreg_max
+                t_brake = (t_brake_set - self.conf_motreg_max*self.ModDrive.conf_gear)
         elif self.swtRegCtl == 2:
+        # Additional regen torque
             t_brake = t_brake_set
             t_mot_reg = t_reg_set
         else:
+        # Meachanical braking
             t_brake = t_brake_set
             t_mot_reg = 0
+
+        self.t_brake_set = t_brake_set
         self.t_brake = t_brake
         self.t_mot_reg = t_mot_reg
         return t_brake, t_mot_reg
