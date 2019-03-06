@@ -20,11 +20,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
-from keras.layers import Dense, LSTM, Reshape, Input
-from keras.optimizers import Adam, SGD, Nadam
-from keras.models import Sequential, load_model
-from keras import backend as K
+import random
+from random import choice
+
+from keras.models import model_from_json
+from keras.models import Sequential, load_model, Model
+from keras.layers.wrappers import TimeDistributed
+from keras.layers.core import Dense, Dropout, Activation, Flatten, RepeatVector, Masking
+from keras.layers import Convolution2D, Dense, Flatten, merge, MaxPooling2D, Input, AveragePooling2D, Lambda, Merge, Activation, Embedding
+from keras.layers.recurrent import LSTM, GRU
+from keras.optimizers import SGD, Adam, rmsprop, Nadam
+from keras import backend as K  
 import tensorflow as tf
+
 K.clear_session()
 #%% Actor critic algorithm
 class agent_actor_critic:
@@ -152,7 +160,7 @@ class agent_actor_critic:
         self.action_prob_array.append(action_prob)
     
         
-#%% Agent class_ policy gradient
+#%% Policy gradient - MC reinforcement
 class AgentMcReinforce:
     def __init__(self, sess, input_state_num, output_action_num, model_dim_dens1, model_dim_dens2, conf_lrn_rate):
         self.sess = sess
@@ -242,7 +250,7 @@ class AgentMcReinforce:
         self.values_dis = values_dis
         return values_norm
     
-#%% Agent class_ policy gradient
+#%% Polic gradient - Gaussian
 class agent_mc_gaussian:
     def __init__(self, sess, input_state_num, model_dim_dens1, model_dim_dens2, conf_lrn_rate):
         self.sess = sess
@@ -355,5 +363,180 @@ class agent_mc_gaussian:
         self.values_norm = values_norm        
         self.values_dis = values_dis
         return values_norm
+#%% Dqrn
+class DdqrnAgent:
 
+    def __init__(self, state_num, sequence_num, action_dim, lrn_rate, agent_config = None):
+        # Define state, action, sequence size for model input, output
+        self.state_num = state_num
+        self.action_dim = action_dim
+        self.sequence_num = sequence_num   
+        self.lrn_rate = lrn_rate
+        # Create replay memory
+        self.memory = ReplayMemory()        
+        # Create main model and target model
+        self.model = None
+        self.target_model = None
+        # Define hyper parameters
+        print('==== Hyper param list: dis_fac, epsilon_init, epsilon_term, batch_size, target_up_freq, explore_dn_freq ====')
+        self.set_hyper_param(agent_config)
+        self.set_agent_model(state_num, sequence_num, action_dim, lrn_rate)
+    
+    def set_agent_model(self, state_num, sequence_num, action_dim, lrn_rate):
+        self.agent_model_config = NetworkDrqn()
+        self.model = self.agent_model_config.model_def(state_num, sequence_num, action_dim, lrn_rate)
+        self.target_model = self.agent_model_config.model_def(state_num, sequence_num, action_dim, lrn_rate)
+        
+    def set_hyper_param(self, agent_config):
+        if agent_config == None:
+            self.dis_fac = 0.98            
+            self.epsilon_init = 1.0
+            self.epsilon_term = 0.0001                   
+            self.batch_size = 32 
+            self.target_up_freq = 200
+            self.explore_dn_freq = 100
+        else:
+            self.dis_fac = agent_config['dis_fac']            
+            self.epsilon_init = agent_config['epsilon_init']
+            self.epsilon_term = agent_config['epsilon_term']
+            self.batch_size = agent_config['batch_size']
+            self.target_up_freq = agent_config['target_up_freq']
+            self.explore_dn_freq = agent_config['explore_dn_freq']
+        self.epsilon = self.epsilon_init
+        self.lrn_num = 0
+        
+    def update_target_model(self):
+        """
+        After some time interval update the target model to be same with model
+        """
+        if (self.lrn_num+1)%self.target_up_freq == 0:
+            print('!!! target model update !!!')
+            self.target_model.set_weights(self.model.get_weights())
+        
+    def update_epsilon(self):
+        "Update explore parameter"
+        if (self.lrn_num+1)%self.explore_dn_freq == 0:
+            self.epsilon = self.epsilon - self.epsilon_term
+            if self.epsilon <= self.epsilon_term:
+                print('!!! explore over !!!')
+                self.epsilon = self.epsilon_term            
 
+    def get_action(self, state_sequence):
+        """
+        Get action from model using epsilon-greedy policy
+        """
+        self.update_epsilon()
+        if np.random.rand() <= self.epsilon:
+            action_idx = random.randrange(self.action_dim)
+        else: 
+            q = self.model.predict(state_sequence) # 1x3
+            action_idx = np.argmax(q)
+        return action_idx
+    
+    def train_from_replay(self):
+        # Get training sample set
+        sample_traces, training_state = self.memory.get_sample_training_set(self.batch_size, self.sequence_num) #batch_dize x sequence_num x 4        
+        if training_state == 'observe':
+            self.flag_train_state = 0
+            q_max = 0
+            loss = 0
+        else:
+            self.flag_train_state = 1
+            # Shape (batch_size, sequence_num, state_num)
+            # state_input_current = np.zeros(((self.batch_size,) + self.state_num)) # Model input array of current state
+            # state_input_next = np.zeros(((self.batch_size,) + self.state_num)) # Model input array of next state
+            
+            state_input_current = np.zeros((self.batch_size, self.sequence_num, self.state_num))
+            state_input_next =  np.zeros((self.batch_size, self.sequence_num, self.state_num))
+            action = np.zeros((self.batch_size, self.sequence_num)) # 32x8
+            reward = np.zeros((self.batch_size, self.sequence_num))
+    
+            for i in range(self.batch_size):
+                for j in range(self.sequence_num):
+                    state_input_current[i,j,:] = sample_traces[i][j][0]
+                    action[i,j] = sample_traces[i][j][1]
+                    reward[i,j] = sample_traces[i][j][2]
+                    state_input_next[i,j,:] = sample_traces[i][j][3]
+    
+            """
+            # Use all traces for training
+            # Size (batch_size, sequence_num, action_dim)
+            # target = self.model.predict(update_input) # 32x8x3
+            # target_val = self.model.predict(update_target) # 32x8x3
+            # for i in range(self.batch_size):
+            #     for j in range(self.sequence_num):
+            #         a = np.argmax(target_val[i][j])
+            #         target[i][j][int(action[i][j])] = reward[i][j] + self.dis_fac * (target_val[i][j][a])
+            """
+    
+            # Only use the last trace for training
+            q_current = self.model.predict(state_input_current) # 32x3
+            q_target = q_current
+            
+            q_next = self.model.predict(state_input_next) # 32x3
+            q_next_model = self.target_model.predict(state_input_next) # 32x3
+            
+            for i in range(self.batch_size):
+                a = np.argmax(q_next[i])
+                q_target[i][int(action[i][-1])] = reward[i][-1] + self.dis_fac * (q_next_model[i][a])
+            
+            loss = self.model.train_on_batch(state_input_current, q_target)
+            q_max = np.max(q_target[-1,-1])
+            self.lrn_num = self.lrn_num + 1
+            
+        return q_max, loss
+
+class NetworkDrqn:
+    def __init__(self, lstm_activation = 'tanh', dense_activation = 'linear', lstm_feanum = 265):
+        self.lstm_activation = lstm_activation
+        self.dense_activation = dense_activation
+        self.lstm_feanum = lstm_feanum
+        
+    def model_def(self, input_state_num, input_sequence_num, output_dim, learning_rate):
+        # Use last trace for training
+        input_shape = (input_sequence_num, input_state_num)
+        model = Sequential()
+        self.model_seq1 = LSTM(self.lstm_feanum,  return_sequences=False, activation = self.lstm_activation, input_shape = input_shape)
+        model.add(self.model_seq1)
+        self.model_output = Dense(output_dim=output_dim, activation='linear')
+        model.add(self.model_output)
+        adam = Adam(lr=learning_rate)
+        model.compile(loss='mse',optimizer=adam)
+        model.summary()
+        return model
+
+class ReplayMemory:
+    """
+    Memory management class for model training
+    """
+    def __init__(self, buffer_size=10000):
+        
+        self.buffer = []
+        self.episode_experience = []
+        self.buffer_size = buffer_size        
+        
+    def store_sample(self, state, action_step, reward_step, state_target):
+        sample_data = [state, action_step, reward_step, state_target]
+        self.episode_experience.append(sample_data)
+    
+    def add_episode_buffer(self,):
+        if len(self.buffer) + 1 >= self.buffer_size:
+            print('!!! buffer is full !!!')
+            self.buffer[0:(1+len(self.buffer))-self.buffer_size] = []            
+        self.buffer.append(self.episode_experience)
+        self.episode_experience = []
+
+    def get_sample_training_set(self, batch_size, sequence_num):
+        if len(self.buffer)<= batch_size:
+            print('!!! observation require !!!')
+            sampled_training_set = []
+            training_state = 'observe'
+        else:
+            sampled_episodes = random.sample(self.buffer, batch_size)
+            sampled_training_set = []
+            for episode in sampled_episodes:
+                point = np.random.randint(0, len(episode)+1-sequence_num)
+                sampled_training_set.append(episode[point:point+sequence_num])
+            sampled_training_set = np.array(sampled_training_set)
+            training_state = 'train'
+        return sampled_training_set, training_state

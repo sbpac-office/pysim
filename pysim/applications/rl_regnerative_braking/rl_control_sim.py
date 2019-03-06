@@ -88,7 +88,9 @@ def fcn_plot_lrn_result(logging_data, rl_data, ax, fig_num):
     ax[0].plot(data_rl['action_index'],alpha = 0.7); 
     ax[0].set_title('action')
     ax[6].clear();
-    ax[6].plot(data_ctl['trq_reg'])
+    ax[6].plot(data_ctl['trq_reg'], lw = 2, color = 'black',alpha = 0.7, label = 'trq set filt')
+    ax[6].plot(data_ctl['trq_reg_raw'],alpha = 0.3, label = 'trq set raw')
+    ax[6].legend()
     
     ax[3].clear(); 
     ax[3].plot(data_drv['acc'], lw = 2, color = 'black',alpha = 0.7, label = 'driving')
@@ -105,11 +107,29 @@ def fcn_plot_lrn_result(logging_data, rl_data, ax, fig_num):
     
     ax[1].clear(); ax[1].plot(policy_actionprob,alpha = 0.7); ax[1].set_title('action prob')
     ax[4].clear(); ax[4].plot(reward_norm_dis,alpha = 0.7); ax[4].set_title('reward array')
+    ax[7].clear(); ax[7].plot(data_rl['rv_sum'], alpha = 0.7, label = 'sum')
+    ax[7].plot(data_rl['rv_drv'], alpha = 0.7, label = 'driving')
+    ax[7].plot(data_rl['rv_mod'], alpha = 0.7, label = 'model')
+    ax[7].plot(data_rl['rv_saf'], alpha = 0.7, label = 'safety')
+    ax[7].set_title('reward')
+    ax[7].legend()
 
     ax[2].clear(); ax[2].imshow(prob_model_out, cmap = 'Blues', aspect = 'auto'); ax[2].set_title('log(action prob)')    
     ax[8].scatter(fig_num, reward_sum, s = 2, alpha = 0.7)
     
     plt.pause(0.05)
+    
+pass
+
+class MovAvgFilt:
+    def __init__(self, filt_num):
+        self.filt_bump = np.zeros(filt_num)
+    
+    def filt(self, current_data):
+        self.filt_bump[0:-1] = self.filt_bump[1:]
+        self.filt_bump[-1] = current_data
+        filt_data = np.mean(self.filt_bump)
+        return filt_data
     
 #%% 1. Pysim Model import
 # Powertrain model import
@@ -144,8 +164,10 @@ agent_reg = AgentMcReinforce(sess, agent_conf['input_num'],
                              agent_conf['model_dim_dens2'], 
                              agent_conf['conf_lrn_rate'])
 agent_reg.conf_dis_fac = 0.97
+trq_ctller = MovAvgFilt(5)
 # Env
 env_reg = EnvRegen(kona_power.ModBattery.SOC)
+
 #%% 2. Simulation setting
 swt_plot = 'off'
 #%% 2. Simulation
@@ -157,7 +179,7 @@ sim_idm = type_DataLog(['stBrkSection','acc_est','acc_ref','vel_est','vel_ref','
 sim_rl = type_DataLog(['state_array','action_index','rv_sum','rv_mod','rv_drv','rv_saf','rv_eng'])
 sim_rl_mod = type_DataLog(['acc','vel','reldis','accref','dis_eff','vel_ref','time','section'])
 sim_rl_drv = type_DataLog(['acc','reldis','vel','prevel'])
-sim_rl_ctl = type_DataLog(['acc','accref','reldis','relvel','vel','trq_reg','soc'])
+sim_rl_ctl = type_DataLog(['acc','accref','reldis','relvel','vel','trq_reg_raw','trq_reg','soc'])
 
 # Set figure plot
 fig = plt.figure(figsize = (11,9)); ax = []
@@ -172,7 +194,7 @@ model_cnt = 0
 
 # Agent configuration
 # torque_set = np.array([-1.5, -1, -0.5, 0, 0.5, 1, 1.5])
-torque_set = np.array([-240, -200, -160, -120, -80, -40, 0])
+torque_set = np.array([240, 200, 160, 120, 80, 40, 0])
 agent_conf['min_lrn_length'] = 10
 reward_sum_array = []
 lrn_num = 0
@@ -249,17 +271,17 @@ for it_num in range(5000):
             action_index_array[0, action_index] = 1
             model_out = agent_reg.model_out
             trq_reg_set_delta = torque_set[action_index]
-            # trqRegSet = trqRegSet + trq_reg_set_delta
+            trqRegSet = trq_ctller.filt(trq_reg_set_delta)
             # agent_reg.get_action()
             "Regen control based on logging data"
             # trqRegSet = -motor_torque_step
             # ===== Vehicle driven
-            kona_vehicle.t_mot_reg_set = -trq_reg_set_delta
+            kona_vehicle.t_mot_reg_set = trqRegSet
             drv_aps = 0
             drv_bps = 0
             kona_vehicle.Veh_lon_driven(drv_aps, drv_bps)
             # ===== Vehicle state and relative state update
-            veh_vel = kona_vehicle.vel_veh                
+            veh_vel = kona_vehicle.vel_veh
             rel_vel = pre_vel - veh_vel
             rel_dis = rel_dis_pre + Ts*rel_vel
             veh_acc = kona_vehicle.veh_acc
@@ -274,7 +296,7 @@ for it_num in range(5000):
                                   model_data['dis_eff'],model_data['vel_ref'],model_data['time'],model_data['section']])
             sim_rl_drv.StoreData([driving_data['acc'], driving_data['reldis'],driving_data['vel'], pre_vel])
             sim_rl_ctl.StoreData([control_result['acc'], control_result['accref'], control_result['reldis'],
-                                  control_result['relvel'],control_result['vel'], trqRegSet, kona_power.ModBattery.SOC])
+                                  control_result['relvel'],control_result['vel'], trq_reg_set_delta, trqRegSet, kona_power.ModBattery.SOC])
     
             agent_reg.store_sample(state_in, action_index, action_index_array, model_out, rv_sum)        
         else:        

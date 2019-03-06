@@ -219,9 +219,10 @@ class EnvRegen:
         self.st_obj_refacc = self.fcn_state_norm(control_result['accref'], self.min_max_config['obj_refacc'])
         self.st_mod_time = self.fcn_state_norm(model_data['time'], self.min_max_config['mod_time'])
         self.st_mod_section = self.fcn_state_norm(model_data['section'], self.min_max_config['mod_section'])
-        state_array = np.array([self.st_veh_acc, self.st_veh_vel,
+        state_ = np.array([self.st_veh_acc, self.st_veh_vel,
                                 self.st_obj_relvel, self.st_obj_reldis, self.st_obj_prevel, self.st_obj_refacc,
                                 self.st_mod_time, self.st_mod_section])
+        state_array = np.reshape(state_, [1, np.shape(state_)[0]])
         self.state_array = state_array
         return state_array
 

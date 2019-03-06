@@ -83,8 +83,7 @@ class Mod_Body:
         self.w_shaft = 0
         self.w_motor = 0
         self.w_vehicle = 0
-        self.Drivetrain_config()
-        print(Ts)
+        self.Drivetrain_config()        
         self.Ts_loc = Ts
 
     def Drivetrain_config(self, conf_rd_wheel = 0.301, conf_jw_wheel = 0.1431, conf_jw_diff_in = 0.015, conf_jw_diff_out = 0.015, conf_jw_trns_out = 0.015, conf_jw_trns_in = 0.01, conf_jw_mot = 0.005,
@@ -250,8 +249,7 @@ class Mod_Veh:
         self.ModDrive = drivetrain_model
         self.Ts_loc = Ts
         self.Veh_init_config()
-        self.Veh_config()
-        print('aa~')
+        self.Veh_config()        
 
     def Veh_init_config(self, x_veh = 0, y_veh = 0, s_veh = 0, n_veh = 0, psi_veh = 0, vel_veh = 0, theta_wheel = 0):
         """Initialize vehicle state
