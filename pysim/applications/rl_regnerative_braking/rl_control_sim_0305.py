@@ -58,7 +58,35 @@ Ts = 0.01
 from rl_idm import IdmAccCf, DecelStateRecog
 from rl_environment import EnvRegen
 from rl_algorithm import DdqrnAgent
-from rl_etc_fcn import MovAvgFilt, fcn_plot_lrn_result, fcn_set_vehicle_param        
+from rl_etc_fcn import MovAvgFilt, fcn_plot_lrn_result, fcn_set_vehicle_param
+#%%
+def fcn_epdata_arrange(ep_data, model, dis_fac):    
+    data_length = len(ep_data)
+    state_in_size = data_length - model_conf['input_sequence_num']
+    input_state = np.zeros((state_in_size, model_conf['input_sequence_num'], model_conf['input_num']))
+    q_array = np.zeros((state_in_size, model_conf['action_dim']))
+    q_max_array = np.zeros((state_in_size))
+    action_index_array = np.zeros((state_in_size))
+    reward_array = np.zeros((state_in_size))
+    q_from_reward = np.zeros((state_in_size))
+    
+            
+    for i in range(state_in_size):
+        ep_data_seq_set = ep_data[i:i+model_conf['input_sequence_num']]
+        for j in range(model_conf['input_sequence_num']):
+            input_state[i,j,:] = ep_data_seq_set[j][0]
+        input_state_dim = np.expand_dims(input_state[i],axis = 0)
+        q_array[i,:] = model.predict(input_state_dim)
+        q_max_array[i] = np.max(q_array[i,:])
+        action_index_array[i] = np.argmax(q_array[i,:])
+        reward_array[i] = ep_data[i+model_conf['input_sequence_num']-1][2]
+    
+    sum_val = 0        
+    for step_index in reversed(range(0, state_in_size)):
+        sum_val = sum_val * dis_fac + reward_array[step_index]
+        q_from_reward[step_index] = sum_val
+        
+    return input_state, q_array, q_max_array, action_index_array, reward_array, q_from_reward
 #%% 1. Pysim Model import
 # Powertrain model import
 kona_power = Mod_Power()
@@ -132,6 +160,9 @@ for it_num in range(1000):
     sim_algorithm.set_reset_log()
     sim_idm.set_reset_log()   
     
+    array_reward = []
+    array_action = []
+    
     for sim_step in range(6200, 7200):
         # Road measured driving data 
         sim_time = DrivingData['Data_Time'][sim_step]
@@ -154,7 +185,7 @@ for it_num in range(1000):
         if stDrvInt == 'acc off' or stDrvInt == 'acc on':
             model_cnt = 0        
         else:
-            model_cnt = model_cnt + 1        
+            model_cnt = model_cnt + 1     
         
         # Prediction each 10ms
         if model_cnt%10 == 0:
@@ -204,7 +235,7 @@ for it_num in range(1000):
             "2. Action"
             "Regen control based on rl agent"
             if state == 'observe':
-                action_index = 3
+                action_index = 3                
             else:
                 action_index = agent_reg.get_action(state_in_sqs)            
             
@@ -234,12 +265,12 @@ for it_num in range(1000):
                 agent_reg.memory.store_sample(state_in, action_index, rv_sum, state_target) 
                 
             
-            # sim_rl.StoreData([state_array, action_index, rv_sum, env_reg.rv_model, env_reg.rv_driving, env_reg.rv_safety, env_reg.rv_energy])    
-            # sim_rl_mod.StoreData([model_data['acc'],model_data['vel'],model_data['reldis'],model_data['acc_ref'],
-            #                       model_data['dis_eff'],model_data['vel_ref'],model_data['time'],model_data['section']])
-            # sim_rl_drv.StoreData([driving_data['acc'], driving_data['reldis'],driving_data['vel'], pre_vel])
-            # sim_rl_ctl.StoreData([control_result['acc'], control_result['accref'], control_result['reldis'],
-            #                       control_result['relvel'],control_result['vel'], trq_reg_set_delta, trqRegSet, kona_power.ModBattery.SOC])
+            sim_rl.StoreData([state_in, action_index, rv_sum, env_reg.rv_model, env_reg.rv_driving, env_reg.rv_safety, env_reg.rv_energy])    
+            sim_rl_mod.StoreData([model_data['acc'],model_data['vel'],model_data['reldis'],model_data['acc_ref'],
+                                  model_data['dis_eff'],model_data['vel_ref'],model_data['time'],model_data['section']])
+            sim_rl_drv.StoreData([driving_data['acc'], driving_data['reldis'],driving_data['vel'], pre_vel])
+            sim_rl_ctl.StoreData([control_result['acc'], control_result['accref'], control_result['reldis'],
+                                  control_result['relvel'],control_result['vel'], trq_reg_set_delta, trqRegSet, kona_power.ModBattery.SOC])
     
         else:        
             flagRegCtlInit = 0
@@ -264,40 +295,22 @@ for it_num in range(1000):
                 print('##acc on learning fail: less than min length')
                 agent_reg.memory.episode_experience = []
             else:
-                agent_reg.memory.add_episode_buffer()
-            
+                agent_reg.memory.add_episode_buffer()                
+                                
+                            
             q_max, loss = agent_reg.train_from_replay()
             if agent_reg.flag_train_state == 1:
                 print('##train on batch, q_max: ',q_max, ' loss: ',loss, ' lrn_num: ', agent_reg.lrn_num, ' explore: ', agent_reg.epsilon)
                         
-            # if len(action_array) < agent_conf['min_lrn_length']:
-            #     print('##acc on learning fail: less than min length')
-            # else:
-            #     episode_num = episode_num + 1
-            #     reward_norm_dis = agent_reg.calc_norm_values(reward_array)
-            #     reward_dis = agent_reg.values_dis
-            #     reward_sum = np.sum(reward_dis)
-            #     reward_sum_array.append(reward_sum)
-            #     tmp_weight1 = agent_reg.policy_model.get_weights()
-            #     opt_result = agent_reg.train_model(state_array, action_index_array, reward_array)
-            #     tmp_weight2 = agent_reg.policy_model.get_weights()
-            #     policy_actionprob = agent_reg.policy_actionprob_value
-            #     print('##acc on learning case, sim_time: ', sim_time)
-            #     print('##lrn num: ', lrn_num, 'reward: ', reward_sum, 'opt_result: ', opt_result)
-            #     agent_reg.reset_sample()
-            #     logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
-            #     rl_data = [reward_norm_dis, reward_sum, prob_model_out, policy_actionprob]
-            #     if (lrn_num-1)%10 == 0:
-            #         fcn_plot_lrn_result(logging_data, rl_data, ax, fig_num)
-            #         fig_num = fig_num + 1
-                    
-            #     sim_rl.set_reset_log()
-            #     sim_rl_drv.set_reset_log()
-            #     sim_rl_mod.set_reset_log()
-            #     sim_rl_ctl.set_reset_log()
-    
             
-            # Learning to episode
+            if (episode_num-1)%100 == 0:
+                logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
+                ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac)
+                fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
+                fig_num = fig_num + 1
+            
+            
+         # Learning to episode
                
         # [drv_aps, drv_bps] = beh_driving.Lon_control(vel_veh_measure_step,kona_vehicle.vel_veh)
         # kona_vehicle.Veh_lon_driven(drv_aps, drv_bps)
@@ -377,4 +390,10 @@ if swt_plot == 'on':
     ax2.plot(sim_rl.DataProfile['rv_saf'], label = 'rv safety')
     ax2.legend()
     #%%
+# K.clear_session()
+
+    
+    
+#     agent_reg.target_model.predict(state_in_sqs)
+        
     

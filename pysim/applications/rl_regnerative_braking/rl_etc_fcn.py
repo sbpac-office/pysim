@@ -21,19 +21,21 @@ def fcn_set_vehicle_param(body_model, vehicle_model, parameter_set, parameter_es
                             conf_drag_cc = parameter_est['ConfEst_drag_rol_b'][0,0])    
 pass
 
-def fcn_plot_lrn_result(logging_data, rl_data, ax, fig_num):    
+def fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num):    
 
     data_rl = logging_data[0].DataProfile
     data_drv = logging_data[1].DataProfile
     data_mod = logging_data[2].DataProfile
     data_ctl = logging_data[3].DataProfile
-    reward_norm_dis = rl_data[0]
-    reward_sum = rl_data[1]
-    prob_model_out = rl_data[2]
-    policy_actionprob = rl_data[3]
-    
+    q_array = ep_data_arry[1]
+    q_array_max = ep_data_arry[2]
+    action_index_from_q = ep_data_arry[3]
+    reward_array = ep_data_arry[4]
+    q_from_reward = ep_data_arry[5]
+    reward_sum = np.sum(reward_array)
     ax[0].clear(); 
-    ax[0].plot(data_rl['action_index'],alpha = 0.7); 
+    ax[0].plot(data_rl['action_index'],alpha = 0.7,'from epsilon');
+    ax[0].plot(action_index_from_q, alpha = 0.7, label = 'from max q')
     ax[0].set_title('action')
     ax[6].clear();
     ax[6].plot(data_ctl['trq_reg'], lw = 2, color = 'black',alpha = 0.7, label = 'trq set filt')
@@ -53,8 +55,8 @@ def fcn_plot_lrn_result(logging_data, rl_data, ax, fig_num):
     ax[5].plot(data_ctl['vel'], alpha = 0.3, label = 'control'); 
     ax[5].set_title('vel')
     
-    ax[1].clear(); ax[1].plot(policy_actionprob,alpha = 0.7); ax[1].set_title('action prob')
-    ax[4].clear(); ax[4].plot(reward_norm_dis,alpha = 0.7); ax[4].set_title('reward array')
+    ax[1].clear(); ax[1].plot(q_array_max,alpha = 0.7); ax[1].set_title('q array from model')
+    ax[4].clear(); ax[4].plot(q_from_reward,alpha = 0.7); ax[4].set_title('q array from reward array')
     ax[7].clear(); ax[7].plot(data_rl['rv_sum'], alpha = 0.7, label = 'sum')
     ax[7].plot(data_rl['rv_drv'], alpha = 0.7, label = 'driving')
     ax[7].plot(data_rl['rv_mod'], alpha = 0.7, label = 'model')
@@ -62,7 +64,7 @@ def fcn_plot_lrn_result(logging_data, rl_data, ax, fig_num):
     ax[7].set_title('reward')
     ax[7].legend()
 
-    ax[2].clear(); ax[2].imshow(prob_model_out, cmap = 'Blues', aspect = 'auto'); ax[2].set_title('log(action prob)')    
+    ax[2].clear(); ax[2].imshow(q_array, cmap = 'Blues', aspect = 'auto'); ax[2].set_title('log(action prob)')    
     ax[8].scatter(fig_num, reward_sum, s = 2, alpha = 0.7)
     
     plt.pause(0.05)

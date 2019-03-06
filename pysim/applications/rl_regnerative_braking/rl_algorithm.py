@@ -427,10 +427,10 @@ class DdqrnAgent:
         """
         self.update_epsilon()
         if np.random.rand() <= self.epsilon:
-            action_idx = random.randrange(self.action_dim)
+            action_idx = random.randrange(self.action_dim)            
         else: 
             q = self.model.predict(state_sequence) # 1x3
-            action_idx = np.argmax(q)
+            action_idx = np.argmax(q)            
         return action_idx
     
     def train_from_replay(self):
