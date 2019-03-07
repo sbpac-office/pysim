@@ -404,6 +404,8 @@ class DdqrnAgent:
             self.explore_dn_freq = agent_config['explore_dn_freq']
         self.epsilon = self.epsilon_init
         self.lrn_num = 0
+        self.q_current = 0
+        self.q_target = 0
         
     def update_target_model(self):
         """
@@ -436,6 +438,7 @@ class DdqrnAgent:
     def train_from_replay(self):
         # Get training sample set
         sample_traces, training_state = self.memory.get_sample_training_set(self.batch_size, self.sequence_num) #batch_dize x sequence_num x 4        
+        self.update_target_model()
         if training_state == 'observe':
             self.flag_train_state = 0
             q_max = 0
@@ -474,16 +477,17 @@ class DdqrnAgent:
             q_target = q_current
             
             q_next = self.model.predict(state_input_next) # 32x3
-            q_next_model = self.target_model.predict(state_input_next) # 32x3
+            # q_next_model = self.target_model.predict(state_input_next) # 32x3
             
             for i in range(self.batch_size):
                 a = np.argmax(q_next[i])
-                q_target[i][int(action[i][-1])] = reward[i][-1] + self.dis_fac * (q_next_model[i][a])
+                q_target[i][int(action[i][-1])] = reward[i][-1] + self.dis_fac * (q_next[i][a])
             
             loss = self.model.train_on_batch(state_input_current, q_target)
             q_max = np.max(q_target[-1,-1])
             self.lrn_num = self.lrn_num + 1
-            
+            self.q_current = q_current
+            self.q_target = q_target            
         return q_max, loss
 
 class NetworkDrqn:

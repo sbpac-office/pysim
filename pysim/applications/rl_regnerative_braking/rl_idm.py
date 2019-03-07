@@ -72,14 +72,14 @@ class DecelStateRecog:
     #     self.stRegCtl = stRegCtl
     #     return stRegCtl
         
-    def regen_control_machine(self, stDrvPedalTrns):
+    def regen_control_machine(self, stDrvPedalTrns, rel_dis):
         stRegCtl = self.stRegCtl
-        if (stDrvPedalTrns == 'acc off') and stRegCtl == 'driving':
+        if (stDrvPedalTrns == 'acc off') and (stRegCtl == 'driving') and (rel_dis <= 150):
             stRegCtl = 'reg on'
         elif (stRegCtl == 'reg on') and (stDrvPedalTrns == 'acc on'):
             stRegCtl = 'driving'            
         else:
-            stRegCtl = self.stRegCtl              
+            stRegCtl = self.stRegCtl        
         self.stRegCtl = stRegCtl
         return stRegCtl
     
@@ -187,7 +187,7 @@ class IdmAccCf:
         
         self.param_active['DisAdjDelta'] = 0
         
-        
+        self.termvelfac = 2
         self.mod_profile = {'acc':0., 'acc_ref':0., 'vel':0., 'vel_ref':0., 'reldis':0., 'dis_eff':0.}
         self.stBrkState = 'None'
         self.flag_idm_run = 'off'
@@ -276,7 +276,7 @@ class IdmAccCf:
     def profile_calculation(self, stBrkState, mod_profile, preveh_vel):
         [acc, acc_ref, vel, vel_ref, reldis, dis_eff] = self.fcn_mod_profile_set(mod_profile)
         
-        acc_ref_next = self.fcn_acc_ref_calc(vel, preveh_vel, reldis)
+        acc_ref_next = self.fcn_acc_ref_calc_term(vel, preveh_vel, reldis)
         if stBrkState == 'Cst':
             vel_ref_next = vel/pow((1 - self.param_active['AccCst']/self.param_active['AccMax']), 0.25)
             dis_eff_next = 0
@@ -290,6 +290,7 @@ class IdmAccCf:
             self.param_active['DisAdj'] = self.param_active['DisAdj'] + self.param_active['DisAdjDelta']
             dis_eff_next = reldis* pow(self.param_active['DisAdj']+1,0.5)
         elif stBrkState == 'Term':
+            # acc_ref_next = self.fcn_acc_ref_calc_term(vel, preveh_vel, reldis)
             vel_ref_next = vel/pow(-1*self.param_active['AccTerm']/self.param_active['AccMax'], 0.25)
             self.param_active['DisAdjDelta'] = (acc - acc_ref)*self.param_active['GainTerm']/self.param_active['AccMax']
             self.param_active['DisAdj'] = self.param_active['DisAdj'] + self.param_active['DisAdjDelta']
@@ -333,7 +334,11 @@ class IdmAccCf:
     
     def fcn_acc_ref_calc(self, vel, preveh_vel, reldis):
         acc_ref = 0.5*(preveh_vel**2 - vel**2)/reldis
-        return acc_ref                
+        return acc_ref
+    
+    def fcn_acc_ref_calc_term(self, vel, preveh_vel, reldis):
+        acc_ref = 0.5*((preveh_vel-self.termvelfac)**2 - vel**2)/reldis
+        return acc_ref
     
     def fcn_mod_profile_set(self, mod_profile):
         acc = mod_profile['acc']
@@ -357,4 +362,26 @@ class IdmAccCf:
             stStateNum = 5
         
         return stStateNum
-   
+
+class IdmClassic:
+    def __init__(self, ):        
+        pass          
+    def get_acc_set(self,  veh_data):
+        veh_vel = veh_data['vel']
+        rel_vel = veh_data['prevel'] - veh_vel
+        rel_dis = veh_data['reldis']
+        pre_vel = veh_data['prevel']
+        
+        param_am = 0.73
+        param_b = 1.67
+        param_vref = 30
+        param_delta = 4
+        param_T = 1.6
+        param_s0 = 2
+                
+        eff_dis = param_s0 + param_T*veh_vel + veh_vel*rel_vel/(2*np.sqrt(param_am*param_b))
+        
+        acc_set = param_am*(1 - (veh_vel/param_vref)**param_delta - (eff_dis/rel_dis)**2)
+        
+        return eff_dis, acc_set
+        

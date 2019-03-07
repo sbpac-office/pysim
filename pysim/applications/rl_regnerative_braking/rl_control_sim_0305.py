@@ -113,7 +113,7 @@ K.clear_session()
 # K.set_session(sess)
 
 
-model_conf = {'input_num': 8, 'input_sequence_num': 8, 'action_dim': 5, 'lrn_rate': 0.0001}
+model_conf = {'input_num': 8, 'input_sequence_num': 8, 'action_dim': 7, 'lrn_rate': 0.005}
 agent_conf = {'min_data_length': 50}
 
 agent_reg = DdqrnAgent(model_conf['input_num'], model_conf['input_sequence_num'],  model_conf['action_dim'], model_conf['lrn_rate'])
@@ -147,12 +147,14 @@ cf_state_recog.stRegCtl = 'driving'
 model_cnt = 0
 
 # Agent configuration
-torque_set = np.array([-1, -0.5, 0, 0.5, 1])
-# torque_set = np.array([240, 200, 160, 120, 80, 40, 0])
+# torque_set = np.array([-1, -0.5, 0, 0.5, 1])
+torque_set = np.array([240, 200, 160, 120, 80, 40, 0])
 
 reward_sum_array = []
 episode_num = 0
 fig_num = 0
+
+
 #%%
 for it_num in range(1000):
     # for sim_step in range(len(DrivingData['Data_Time'])):
@@ -262,8 +264,7 @@ for it_num in range(1000):
             # ===== Update vehicle state
             state_target = env_reg.get_norm_state_value(model_data, control_result)            
             if state == 'control':
-                agent_reg.memory.store_sample(state_in, action_index, rv_sum, state_target) 
-                
+                agent_reg.memory.store_sample(state_in, action_index, rv_sum, state_target)
             
             sim_rl.StoreData([state_in, action_index, rv_sum, env_reg.rv_model, env_reg.rv_driving, env_reg.rv_safety, env_reg.rv_energy])    
             sim_rl_mod.StoreData([model_data['acc'],model_data['vel'],model_data['reldis'],model_data['acc_ref'],
@@ -287,28 +288,40 @@ for it_num in range(1000):
             drv_aps = 0
             drv_bps = 0
         
+        
+        
         if stDrvInt == 'acc on':
             # Episode done
             "Save episode data"
             ep_data = agent_reg.memory.episode_experience
-            if len(ep_data) < agent_conf['min_data_length']:                
+            if len(ep_data) < agent_conf['min_data_length']:         
                 print('##acc on learning fail: less than min length')
                 agent_reg.memory.episode_experience = []
             else:
-                agent_reg.memory.add_episode_buffer()                
-                                
-                            
+                agent_reg.memory.add_episode_buffer()
+                if (episode_num-1)%10 == 0:
+                    logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
+                    ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac)
+                    fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
+                    fig_num = fig_num + 1
+            
             q_max, loss = agent_reg.train_from_replay()
+            # q_current = agent_reg.q_current
+            # q_target = agent_reg.q_target
+            
             if agent_reg.flag_train_state == 1:
                 print('##train on batch, q_max: ',q_max, ' loss: ',loss, ' lrn_num: ', agent_reg.lrn_num, ' explore: ', agent_reg.epsilon)
                         
+            episode_num = episode_num+1
+
             
-            if (episode_num-1)%100 == 0:
-                logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
-                ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac)
-                fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
-                fig_num = fig_num + 1
             
+            sim_rl.set_reset_log()
+            sim_rl_mod.set_reset_log()
+            sim_rl_drv.set_reset_log()
+            sim_rl_ctl.set_reset_log()
+        
+        
             
          # Learning to episode
                
