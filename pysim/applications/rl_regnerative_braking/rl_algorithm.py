@@ -27,7 +27,7 @@ from keras.models import model_from_json
 from keras.models import Sequential, load_model, Model
 from keras.layers.wrappers import TimeDistributed
 from keras.layers.core import Dense, Dropout, Activation, Flatten, RepeatVector, Masking
-from keras.layers import Convolution2D, Dense, Flatten, merge, MaxPooling2D, Input, AveragePooling2D, Lambda, Merge, Activation, Embedding
+from keras.layers import Convolution2D, Dense, Flatten, merge, MaxPooling2D, Input, AveragePooling2D, Lambda, Activation, Embedding
 from keras.layers.recurrent import LSTM, GRU
 from keras.optimizers import SGD, Adam, rmsprop, Nadam
 from keras import backend as K  
@@ -391,10 +391,10 @@ class DdqrnAgent:
         if agent_config == None:
             self.dis_fac = 0.98            
             self.epsilon_init = 1.0
-            self.epsilon_term = 0.0001                   
+            self.epsilon_term = 0.1                   
             self.batch_size = 32 
             self.target_up_freq = 200
-            self.explore_dn_freq = 100
+            self.explore_dn_freq = 300
         else:
             self.dis_fac = agent_config['dis_fac']            
             self.epsilon_init = agent_config['epsilon_init']
@@ -418,7 +418,7 @@ class DdqrnAgent:
     def update_epsilon(self):
         "Update explore parameter"
         if (self.lrn_num+1)%self.explore_dn_freq == 0:
-            self.epsilon = self.epsilon - self.epsilon_term
+            self.epsilon = self.epsilon - 0.0001
             if self.epsilon <= self.epsilon_term:
                 print('!!! explore over !!!')
                 self.epsilon = self.epsilon_term            
@@ -513,7 +513,7 @@ class ReplayMemory:
     """
     Memory management class for model training
     """
-    def __init__(self, buffer_size=10000):
+    def __init__(self, buffer_size=1000):
         
         self.buffer = []
         self.episode_experience = []
@@ -525,7 +525,7 @@ class ReplayMemory:
     
     def add_episode_buffer(self,):
         if len(self.buffer) + 1 >= self.buffer_size:
-            print('!!! buffer is full !!!')
+#            print('!!! buffer is full !!!')
             self.buffer[0:(1+len(self.buffer))-self.buffer_size] = []            
         self.buffer.append(self.episode_experience)
         self.episode_experience = []

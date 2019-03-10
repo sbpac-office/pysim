@@ -7,7 +7,7 @@ Created on Tue Mar  5 16:34:49 2019
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-
+import pickle
 def fcn_set_vehicle_param(body_model, vehicle_model, parameter_set, parameter_est):
     body_model.Drivetrain_config(conf_rd_wheel = parameter_set['Conf_wheel_rad'][0,0],                                  
                                   conf_jw_mot = parameter_set['Conf_iner_mot'][0,0], 
@@ -39,6 +39,7 @@ def fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num):
     ax[0].clear(); 
     ax[0].plot(data_rl['action_index'],alpha = 0.7,label = 'from epsilon');
     ax[0].plot(action_index_from_q, alpha = 0.7, label = 'from max q')
+    ax[0].legend()
     ax[0].set_title('action')
     ax[6].clear();
     ax[6].plot(data_ctl['trq_reg'], lw = 2, color = 'black',alpha = 0.7, label = 'trq set filt')
@@ -78,11 +79,24 @@ def fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num):
 pass
 
 class MovAvgFilt:
+    
     def __init__(self, filt_num):
         self.filt_bump = np.zeros(filt_num)
+        self.filt_num = filt_num
     
     def filt(self, current_data):
         self.filt_bump[0:-1] = self.filt_bump[1:]
         self.filt_bump[-1] = current_data
         filt_data = np.mean(self.filt_bump)
         return filt_data
+    
+    def reset_filt(self,):
+        self.filt_bump = np.zeros(self.filt_num)
+
+def fcn_log_data_store(data, filename):
+#    filename = 'one_case_result.pkl'
+    with open(filename, 'wb') as output:
+        pickle.dump(data, output)
+        
+
+    

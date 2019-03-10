@@ -269,6 +269,8 @@ class IdmAccCf:
                 self.flag_idm_state = 1
         else:
             stBrkState = 'None'
+            if stBrkStatePri == 'Term':
+                self.flag_idm_run = 'off'
             self.flag_idm_state = 0
                   
         return stBrkState

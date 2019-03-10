@@ -117,7 +117,7 @@ class EnvRegen:
         self.conf_drv_fac_vel = conf_drv_fac_vel
         self.conf_drv_fac_dis = conf_drv_fac_dis
 
-    def set_coef_model(self, conf_mod_fac_acc = 0.5, conf_mod_fac_vel = 0.25, conf_mod_fac_dis = 0.25):
+    def set_coef_model(self, conf_mod_fac_acc = 0.1, conf_mod_fac_vel = 0.1, conf_mod_fac_dis = 0.1):
         "Set model reward configuration"
         "reward = -conf_factor * error(model_data, control_result)"
         self.conf_mod_fac_acc = conf_mod_fac_acc

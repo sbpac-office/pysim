@@ -60,7 +60,7 @@ Ts = 0.01
 from rl_idm import IdmAccCf, DecelStateRecog, IdmClassic
 from rl_environment import EnvRegen
 from rl_algorithm import DdqrnAgent
-from rl_etc_fcn import MovAvgFilt, fcn_plot_lrn_result, fcn_set_vehicle_param
+from rl_etc_fcn import MovAvgFilt, fcn_plot_lrn_result, fcn_set_vehicle_param, fcn_log_data_store
 #%%
 def fcn_epdata_arrange(ep_data, model, dis_fac):    
     data_length = len(ep_data)
@@ -147,10 +147,11 @@ K.clear_session()
 # K.set_session(sess)
 
 
-model_conf = {'input_num': 8, 'input_sequence_num': 8, 'action_dim': 6, 'lrn_rate': 0.005}
+model_conf = {'input_num': 8, 'input_sequence_num': 8, 'action_dim': 6, 'lrn_rate': 0.0005}
 agent_conf = {'min_data_length': 50}
 
 agent_reg = DdqrnAgent(model_conf['input_num'], model_conf['input_sequence_num'],  model_conf['action_dim'], model_conf['lrn_rate'])
+agent_reg.explore_dn_freq = 1000
 
 acc_set_filt = MovAvgFilt(7)
 reg_trq_ctl = type_pid_controller()
@@ -194,12 +195,16 @@ model_cnt = 0
 co_factor_set = np.array([0,0.2,0.4,0.6,0.8,1])
 
 reward_sum_array = []
+reward_array = []
 episode_num = 0
 fig_num = 0
 
 
+
+#agent_reg.model.load_weights('factor_oncase.h5')
+#agent_reg.target_model.load_weights('factor_oncase.h5')
 #%%
-for it_num in range(100):
+for it_num in range(30000):
     # for sim_step in range(len(DrivingData['Data_Time'])):
     sim_vehicle.set_reset_log()
     sim_algorithm.set_reset_log()
@@ -207,9 +212,13 @@ for it_num in range(100):
     
     array_reward = []
     array_action = []
+    a_lqr = 0
+    a_idm = 0
+    x1 = 0
+    x2 = 0
     for sim_step in range(len(DrivingData['Data_Time'])):
-    # for sim_step in range(0, 10000):
-        # Road measured driving data 
+#    for sim_step in range(800, 1800):
+        # Road measured driving data
         sim_time = DrivingData['Data_Time'][sim_step]
         acc_veh_measure_step = DrivingData['DataVeh_Acc'][sim_step]
         vel_veh_measure_step = DrivingData['DataVeh_Vel'][sim_step]
@@ -220,7 +229,7 @@ for it_num in range(100):
         motor_torque_step = DrivingData['DataVeh_MotTorque'][sim_step]
         motor_rotspd_step = DrivingData['DataVeh_MotRotSpeed'][sim_step]
         # Transition state
-        stDrvInt = cf_state_recog.pedal_transition_machine(driver_aps_in_step, driver_bps_in_step)    
+        stDrvInt = cf_state_recog.pedal_transition_machine(driver_aps_in_step, driver_bps_in_step)
         stRegCtl = cf_state_recog.regen_control_machine(stDrvInt, rel_dis_step)
         
         # Vehicle data for initial lization
@@ -258,7 +267,9 @@ for it_num in range(100):
                 flagRegCtlInit = 1
                 trqRegSet = 0
                 state_in_sqs = np.zeros((1,model_conf['input_sequence_num'],model_conf['input_num']))
-                cnt_episode = 0
+                cnt_episode = 0                
+                acc_set_filt.filt(acc_veh_measure_step)
+                reward_array = []
             else:
                 rel_dis_pre = rel_dis
                 cnt_episode = cnt_episode + 1
@@ -292,7 +303,7 @@ for it_num in range(100):
             a_idm = idm_kh.mod_profile['acc']
             
             if state == 'observe':
-                action_index = 0           
+                action_index = 0          
             else:
                 action_index = agent_reg.get_action(state_in_sqs)
             co_factor = co_factor_set[action_index]
@@ -318,7 +329,8 @@ for it_num in range(100):
             acc_ref = 0.5*(pre_vel**2 - vel_veh_measure_step**2)/rel_dis_step
             "3. Reward calculation"
             control_result = {'acc': veh_acc, 'vel': veh_vel, 'relvel': pre_vel - veh_vel, 'reldis': rel_dis_pre, 'prevel': pre_vel, 'accref':acc_ref}
-            rv_sum = env_reg.get_reward(driving_data,model_data, control_result, kona_power.ModBattery.SOC)            
+            rv_sum = env_reg.get_reward(driving_data,model_data, control_result, kona_power.ModBattery.SOC)
+            reward_array.append(rv_sum)
             "4. Data logging and store sample"
             # ===== Update vehicle state
             state_target = env_reg.get_norm_state_value(model_data, control_result)            
@@ -351,31 +363,33 @@ for it_num in range(100):
             kona_drivetrain.w_vehicle = vel_veh_measure_step/kona_vehicle.conf_rd_wheel
             kona_drivetrain.w_wheel = motor_rotspd_step/kona_drivetrain.conf_gear        
             drv_aps = 0
-            drv_bps = 0
-        
+            drv_bps = 0       
         
         
         if stDrvInt == 'acc on':
             # Episode done
             "Save episode data"
             ep_data = agent_reg.memory.episode_experience
+            q_max, loss = agent_reg.train_from_replay()
+            
+            if agent_reg.flag_train_state == 1:                
+                print('##train on batch, rv_sum: ',reward_sum_array[-1], ' loss: ',loss, ' lrn_num: ', agent_reg.lrn_num, ' explore: ', agent_reg.epsilon)
+                      
             if len(ep_data) < agent_conf['min_data_length']:         
                 print('##acc on learning fail: less than min length')
                 agent_reg.memory.episode_experience = []
             else:
                 agent_reg.memory.add_episode_buffer()
-                if (episode_num-1)%10 == 0:
-                    logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
-                    ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac)
-                    fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
-                    fig_num = fig_num + 1
-            
-            q_max, loss = agent_reg.train_from_replay()
-            # q_current = agent_reg.q_current
-            # q_target = agent_reg.q_target
-            
-            if agent_reg.flag_train_state == 1:
-                print('##train on batch, q_max: ',q_max, ' loss: ',loss, ' lrn_num: ', agent_reg.lrn_num, ' explore: ', agent_reg.epsilon)
+                reward_sum_array.append(np.sum(reward_array))
+                if (episode_num-1)%20 == 0:
+                        logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
+                        ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac)
+                        fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
+                        fig_num = fig_num + 1
+                if np.sum(reward_array) >= -640:
+                        fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_fin.pkl')                        
+                        agent_reg.model.save_weights("factor_onecase_best.h5")
+                        print('!!============================== result convergen ==================================!!')
                         
             episode_num = episode_num+1
 
@@ -385,8 +399,11 @@ for it_num in range(100):
             sim_rl_ctl.set_reset_log()
         
         
-            
-         # Learning to episode
+        "End of driving data iteration"
+        
+#        reward_array = []
+        
+        # Learning to episode
                
         # [drv_aps, drv_bps] = beh_driving.Lon_control(vel_veh_measure_step,kona_vehicle.vel_veh)
         # kona_vehicle.Veh_lon_driven(drv_aps, drv_bps)
