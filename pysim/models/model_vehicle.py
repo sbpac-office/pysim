@@ -374,7 +374,7 @@ class Mod_Veh:
         t_drag, f_drag = self.Drag_system(self.vel_veh)
         # Power control
         t_mot_des = t_mot_set - t_mot_reg_set
-        w_mot, t_mot = self.ModPower.Motor_driven(t_mot_des, w_mot)
+        w_mot, t_mot = self.ModPower.ModMotor.Motor_driven(t_mot_des, w_mot)
         self.t_mot_des = t_mot_des
         # Body equivalence
         t_mot_load, t_shaft_in, t_shaft_out, t_wheel_in, t_wheel_traction_f, t_driven, f_lon = self.ModDrive.Lon_equivalence(t_mot,t_brk,t_drag)

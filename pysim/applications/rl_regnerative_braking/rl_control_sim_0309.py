@@ -37,7 +37,7 @@ from keras.models import Sequential, load_model
 colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS) 
 app_dir = os.path.abspath('')
 os.chdir('..\..\..')
-from pysim.models.model_power import Mod_Power, Mod_Battery, Mod_Motor
+from pysim.models.model_power import Mod_Power
 from pysim.models.model_vehicle import Mod_Body, Mod_Veh
 from pysim.models.model_environment import Mod_Env
 from pysim.models.model_maneuver import Mod_Driver, Mod_Behavior
@@ -50,7 +50,25 @@ get_data.set_dir(os.path.abspath('.\driving_data'))
 DrivingData = get_data.load_mat('CfData1.mat')
 
 get_data.set_dir(os.path.abspath('.\driver_data'))
-DriverData = get_data.load_mat('LrnVecCf.mat')
+DriverDataRaw = get_data.load_mat('Results_Sils_Learning.mat')
+DriverDataRaw['BaseMap_InitDis'] = np.transpose(DriverDataRaw['BaseMap_InitDis'])
+DriverDataRaw['BaseMap_CoastDis'] = np.transpose(DriverDataRaw['BaseMap_CoastDis'])
+
+DriverDataKh = copy.deepcopy(DriverDataRaw)
+DriverDataKh['LrnVec_Param_AccSlopeCf'] =  np.expand_dims(np.transpose(DriverDataKh['MapArry_AccSlopeCf'][0,:]), axis = 1)
+DriverDataKh['LrnVec_Param_RelDisAdj'] =  np.expand_dims(np.transpose(DriverDataKh['MapArry_AdjDis'][0,:]), axis = 1)
+DriverDataKh['LrnVec_Param_RelDisInit'] =  np.expand_dims(np.transpose(DriverDataKh['MapArry_InitDis'][0,:]), axis = 1)
+
+DriverDataGb = copy.deepcopy(DriverDataRaw)
+DriverDataGb['LrnVec_Param_AccSlopeCf'] = np.expand_dims(np.transpose(DriverDataGb['MapArry_AccSlopeCf'][1,:]),axis=1)
+DriverDataGb['LrnVec_Param_RelDisAdj'] =  np.expand_dims(np.transpose(DriverDataGb['MapArry_AdjDis'][1,:]), axis = 1)
+DriverDataGb['LrnVec_Param_RelDisInit'] =  np.expand_dims(np.transpose(DriverDataGb['MapArry_InitDis'][1,:]), axis = 1)
+
+DriverDataYk = copy.deepcopy(DriverDataRaw)
+DriverDataYk['LrnVec_Param_AccSlopeCf'] =  np.expand_dims(np.transpose(DriverDataYk['MapArry_AccSlopeCf'][2,:]), axis = 1)
+DriverDataYk['LrnVec_Param_RelDisAdj'] = np.expand_dims(np.transpose(DriverDataYk['MapArry_AdjDis'][2,:]), axis = 1)
+DriverDataYk['LrnVec_Param_RelDisInit'] =  np.expand_dims(np.transpose(DriverDataYk['MapArry_InitDis'][2,:]), axis = 1)
+
 
 get_data.set_dir(os.path.abspath('.\model_data'))
 kona_param = get_data.load_mat('CoeffSet_Kona.mat')
@@ -136,7 +154,7 @@ fcn_set_vehicle_param(kona_drivetrain, kona_vehicle, kona_param, kona_param_est)
 
 # RL controller
 # Idm
-idm_kh = IdmAccCf(DriverData)
+idm_kh = IdmAccCf(DriverDataKh)
 cf_state_recog = DecelStateRecog()
 idm_cls = IdmClassic()
 # Agent

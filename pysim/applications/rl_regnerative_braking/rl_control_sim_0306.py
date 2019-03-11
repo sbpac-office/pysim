@@ -216,8 +216,8 @@ for it_num in range(30000):
     a_idm = 0
     x1 = 0
     x2 = 0
-    for sim_step in range(len(DrivingData['Data_Time'])):
-#    for sim_step in range(800, 1800):
+#    for sim_step in range(len(DrivingData['Data_Time'])):
+    for sim_step in range(800, 1800):
         # Road measured driving data
         sim_time = DrivingData['Data_Time'][sim_step]
         acc_veh_measure_step = DrivingData['DataVeh_Acc'][sim_step]
