@@ -144,10 +144,16 @@ K_lqr,X,eigVals = lqr(A,B,Q,R)
 for driver_case in range(3):
     if driver_case == 0:
         DriverData = DriverDataKh
+        idm_kh = IdmAccCf(DriverData)
+        idm_kh.termvelfac = 2
     elif driver_case == 1:
         DriverData = DriverDataYk
+        idm_kh = IdmAccCf(DriverData)
+        idm_kh.termvelfac = 1.5
     else:
         DriverData = DriverDataGb
+        idm_kh = IdmAccCf(DriverData)
+        idm_kh.termvelfac = 1
         
         
     #%% 1. Pysim Model import
@@ -167,7 +173,7 @@ for driver_case in range(3):
     
     # RL controller
     # Idm
-    idm_kh = IdmAccCf(DriverData)
+    
     cf_state_recog = DecelStateRecog()
     idm_cls = IdmClassic()
     # Agent

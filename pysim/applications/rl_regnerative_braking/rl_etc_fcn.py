@@ -68,6 +68,7 @@ def fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num):
     ax[7].plot(data_rl['rv_drv'], alpha = 0.7, label = 'driving')
     ax[7].plot(data_rl['rv_mod'], alpha = 0.7, label = 'model')
     ax[7].plot(data_rl['rv_saf'], alpha = 0.7, label = 'safety')
+    ax[7].plot(data_rl['rv_eng'], alpha = 0.7, label = 'energy')
     ax[7].set_title('reward')
     ax[7].legend()
 

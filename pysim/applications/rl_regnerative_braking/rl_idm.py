@@ -178,8 +178,8 @@ class idm_acc_stop:
 
 class IdmAccCf:
     def __init__(self, DriverData):        
-        self.LrnVec_RelDisInitDelta = EffectProbIndex['CoastRelDis'][0,0] - DriverData['LrnVec_Param_RelDisInit']
-        self.LrnVec_RelDisAdjDelta = EffectProbIndex['InitRelDis'][0,0] - DriverData['LrnVec_Param_RelDisAdj'] 
+        self.LrnVec_RelDisInit = DriverData['LrnVec_Param_RelDisInit']
+        self.LrnVec_RelDisAdj = DriverData['LrnVec_Param_RelDisAdj'] 
         self.LrnVec_AccSlope = DriverData['LrnVec_Param_AccSlopeCf']
         self.param_active = {'RelDisInit':100., 'RelDisAdj':80. , 'AccSlope':-1.5, 'AccAdj':-2., 
                              'AccTerm':-4., 'AccMax':3., 'AccCst':-0.08, 'VelRat':0.8, 'DisAdj':0., 
@@ -198,14 +198,12 @@ class IdmAccCf:
     def param_active_coast(self, veh_data_reldis_coast):
         # Activate initial rel dis parameter
         EffProb_InitRelDis = EffectiveProbability(veh_data_reldis_coast, EffectProbIndex['CoastRelDis'][0,0], EffectProbIndex['StdCoastRelDis'][0,0])        
-        self.param_active['RelDisInitDelta'] = np.sum(EffProb_InitRelDis*self.LrnVec_RelDisInitDelta[:,0])
-        self.param_active['RelDisInit'] = veh_data_reldis_coast - self.param_active['RelDisInitDelta']
+        self.param_active['RelDisInit'] = np.sum(EffProb_InitRelDis*self.LrnVec_RelDisInit[:,0]) 
         
         # Activate adjust rel dis parameter
         EffProb_AdjRelDis =  EffectiveProbability(self.param_active['RelDisInit'] , EffectProbIndex['InitRelDis'][0,0], EffectProbIndex['StdInitRelDis'][0,0])        
-        self.param_active['RelDisAdjDelta'] = np.sum(EffProb_AdjRelDis*self.LrnVec_RelDisAdjDelta[:,0])
-        self.param_active['RelDisAdj'] = self.param_active['RelDisInit'] - self.param_active['RelDisAdjDelta']
-        
+        self.param_active['RelDisAdj'] = np.sum(EffProb_AdjRelDis*self.LrnVec_RelDisAdj[:,0])
+                
     def param_active_init(self, veh_data_reldis_init, veh_data_vel_init, mod_vel_ref_init):
         InitAccIndex = veh_data_vel_init**2/veh_data_reldis_init
         EffProb_AccSlopeInit = EffectiveProbability(InitAccIndex, EffectProbIndex['InitIndexCf'][0,0], EffectProbIndex['StdAcc'][0,0])
@@ -248,7 +246,7 @@ class IdmAccCf:
             else:
                 self.flag_idm_run = 'on'
                 
-        if (self.flag_idm_run == 'on') and (vel >= preveh_vel):
+        if (self.flag_idm_run == 'on') and (vel >= (preveh_vel- self.termvelfac)):
             if (reldis <= self.param_active['RelDisInit']) and (reldis > self.param_active['RelDisAdj']) and (acc >= acc_ref) and (self.flag_idm_state <= 2):
                 stBrkState = 'Init'
                 self.flag_idm_state = 2

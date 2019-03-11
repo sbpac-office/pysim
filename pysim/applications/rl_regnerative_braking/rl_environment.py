@@ -156,13 +156,16 @@ class EnvRegen:
 
     def get_reward_model(self, model_data, control_result):
         "Calculate model reward"
-        err_acc = abs(model_data['acc'] - control_result['acc'])
-        err_vel = abs(model_data['vel'] - control_result['vel'])
-        err_dis = abs(model_data['reldis'] - control_result['reldis'])
-        self.rv_model_acc = -self.conf_mod_fac_acc * err_acc
-        self.rv_model_vel = -self.conf_mod_fac_vel * err_vel
-        self.rv_model_dis = -self.conf_mod_fac_dis * err_dis
-        self.rv_model = self.rv_model_acc + self.rv_model_vel + self.rv_model_dis
+        if model_data['section'] == 0:
+            self.rv_model = 0
+        else:
+            err_acc = abs(model_data['acc'] - control_result['acc'])
+            err_vel = abs(model_data['vel'] - control_result['vel'])
+            err_dis = abs(model_data['reldis'] - control_result['reldis'])
+            self.rv_model_acc = -self.conf_mod_fac_acc * err_acc
+            self.rv_model_vel = -self.conf_mod_fac_vel * err_vel
+            self.rv_model_dis = -self.conf_mod_fac_dis * err_dis
+            self.rv_model = self.rv_model_acc + self.rv_model_vel + self.rv_model_dis
         return self.rv_model
 
     def get_reward_safety(self, control_result):
