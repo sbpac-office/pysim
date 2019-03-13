@@ -197,6 +197,13 @@ for driver_case in range(3):
     # Env
     env_reg = EnvRegen(kona_power.ModBattery.SOC)
     
+    " Load model"
+    if driver_case == 0:
+        agent_reg.model.set_weights('driving_case_driver_0.h5')
+    elif driver_case == 1:
+        agent_reg.model.set_weights('driving_case_driver_1.h5')
+    else:
+        agent_reg.model.set_weights('driving_case_driver_2.h5')
     
     #%% 2. Simulation setting
     swt_plot = 'on'
@@ -250,6 +257,7 @@ for driver_case in range(3):
         regen_on_array = []
         array_action = []
         reward_array = []
+        q_array = []
         a_lqr = 0
         a_idm = 0
         x1 = 0
@@ -457,7 +465,9 @@ for driver_case in range(3):
             sim_idm.StoreData([idm_kh.stBrkState, idm_kh.mod_profile['acc'], idm_kh.mod_profile['acc_ref'], 
                                idm_kh.mod_profile['vel'], idm_kh.mod_profile['vel_ref'], idm_kh.mod_profile['reldis'], 
                                idm_kh.mod_profile['dis_eff'], idm_kh.param_active['DisAdj'], idm_kh.param_active['DisAdjDelta'],
-                               idm_kh.param_active['RelDisInit'], idm_kh.param_active['RelDisInit'], idm_kh.flag_idm_run])        
+                               idm_kh.param_active['RelDisInit'], idm_kh.param_active['RelDisInit'], idm_kh.flag_idm_run])
+            
+            q_array.append(agent_reg.q_step)
         "End of driving data iteration"
         reward_sum_array.append(np.sum(reward_array))
         print('!!!!!!!!!!!!!!!! Episode is terminated, Reward_Sum: ', reward_sum_array[-1])

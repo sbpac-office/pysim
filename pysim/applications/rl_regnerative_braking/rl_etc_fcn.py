@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import pickle
+import scipy
 def fcn_set_vehicle_param(body_model, vehicle_model, parameter_set, parameter_est):
     body_model.Drivetrain_config(conf_rd_wheel = parameter_set['Conf_wheel_rad'][0,0],                                  
                                   conf_jw_mot = parameter_set['Conf_iner_mot'][0,0], 
@@ -99,5 +100,53 @@ def fcn_log_data_store(data, filename):
     with open(filename, 'wb') as output:
         pickle.dump(data, output)
         
+def fcn_epdata_arrange(ep_data, model, dis_fac):    
+    data_length = len(ep_data)
+    state_in_size = data_length - model_conf['input_sequence_num']
+    input_state = np.zeros((state_in_size, model_conf['input_sequence_num'], model_conf['input_num']))
+    q_array = np.zeros((state_in_size, model_conf['action_dim']))
+    q_max_array = np.zeros((state_in_size))
+    action_index_array = np.zeros((state_in_size))
+    reward_array = np.zeros((state_in_size))
+    q_from_reward = np.zeros((state_in_size))
+    
+            
+    for i in range(state_in_size):
+        ep_data_seq_set = ep_data[i:i+model_conf['input_sequence_num']]
+        for j in range(model_conf['input_sequence_num']):
+            input_state[i,j,:] = ep_data_seq_set[j][0]
+        input_state_dim = np.expand_dims(input_state[i],axis = 0)
+        q_array[i,:] = model.predict(input_state_dim)
+        q_max_array[i] = np.max(q_array[i,:])
+        action_index_array[i] = np.argmax(q_array[i,:])
+        reward_array[i] = ep_data[i+model_conf['input_sequence_num']-1][2]
+    
+    sum_val = 0        
+    for step_index in reversed(range(0, state_in_size)):
+        sum_val = sum_val * dis_fac + reward_array[step_index]
+        q_from_reward[step_index] = sum_val
+        
+    return input_state, q_array, q_max_array, action_index_array, reward_array, q_from_reward
+
+def lqr(A,B,Q,R):
+    """Solve the continuous time lqr controller.
+     
+    dx/dt = A x + B u
+     
+    cost = integral x.T*Q*x + u.T*R*u
+    """
+    #ref Bertsekas, p.151
+     
+    #first, try to solve the ricatti equation
+    X = np.matrix(scipy.linalg.solve_continuous_are(A, B, Q, R))
+     
+    #compute the LQR gain    
+    # K = np.matrix(scipy.linalg.inv(R)*(B.T*X))
+    K_lqr = np.matrix((B.T*X)/R) 
+    eigVals, eigVecs = scipy.linalg.eig(A-B*K_lqr)
+     
+    return K_lqr, X, eigVals
+
+
 
     

@@ -381,6 +381,7 @@ class DdqrnAgent:
         print('==== Hyper param list: dis_fac, epsilon_init, epsilon_term, batch_size, target_up_freq, explore_dn_freq ====')
         self.set_hyper_param(agent_config)
         self.set_agent_model(state_num, sequence_num, action_dim, lrn_rate)
+        self.q_step = 0
     
     def set_agent_model(self, state_num, sequence_num, action_dim, lrn_rate):
         self.agent_model_config = NetworkDrqn()
@@ -428,10 +429,11 @@ class DdqrnAgent:
         Get action from model using epsilon-greedy policy
         """
         self.update_epsilon()
+        q = self.model.predict(state_sequence)
+        self.q_step = q
         if np.random.rand() <= self.epsilon:
             action_idx = random.randrange(self.action_dim)            
-        else: 
-            q = self.model.predict(state_sequence) # 1x3
+        else:
             action_idx = np.argmax(q)            
         return action_idx
     
