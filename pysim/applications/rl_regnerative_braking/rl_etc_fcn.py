@@ -73,7 +73,12 @@ def fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num):
     ax[7].set_title('reward')
     ax[7].legend()
 
-    ax[2].clear(); ax[2].imshow(q_array, cmap = 'Blues', aspect = 'auto'); ax[2].set_title('log(action prob)')    
+    # ax[2].clear(); ax[2].imshow(q_array, cmap = 'Blues', aspect = 'auto'); ax[2].set_title('log(action prob)')    
+    ax[2].clear()
+    ax[2].plot(data_ctl['x_1'],alpha = 0.7,label = 'x_rel_dis')
+    ax[2].plot(data_ctl['x_2'],alpha = 0.7,label = 'x_rel_vel')
+    ax[2].plot(data_ctl['x_1_r'],alpha = 0.7,label = 'x_rel_dis_des')
+    ax[2].legend()
     ax[8].scatter(fig_num, reward_sum, s = 2, alpha = 0.7)
     
     plt.pause(0.05)
