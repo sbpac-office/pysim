@@ -391,7 +391,7 @@ class DdqrnAgent:
     def set_hyper_param(self, agent_config):
         if agent_config == None:
             self.dis_fac = 0.98            
-            self.epsilon_init = 1.0
+            self.epsilon_init = 0.5
             self.epsilon_term = 0.1                   
             self.batch_size = 32 
             self.target_up_freq = 200

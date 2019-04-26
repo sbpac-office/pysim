@@ -154,7 +154,7 @@ model_conf = {'input_num': 8, 'input_sequence_num': 8, 'action_dim': 6, 'lrn_rat
 agent_conf = {'min_data_length': 50}
 
 agent_reg = DdqrnAgent(model_conf['input_num'], model_conf['input_sequence_num'],  model_conf['action_dim'], model_conf['lrn_rate'])
-agent_reg.explore_dn_freq = 1000
+agent_reg.explore_dn_freq = 100
 
 acc_set_filt = MovAvgFilt(7)
 reg_trq_ctl = type_pid_controller()
@@ -162,7 +162,7 @@ reg_trq_ctl.P_gain = 50
 reg_trq_ctl.I_gain = 500
 # Env
 env_reg = EnvRegen(kona_power.ModBattery.SOC)
-
+env_reg.conf_energy_fac = 1000
 
 #%% 2. Simulation setting
 swt_plot = 'on'
@@ -218,6 +218,8 @@ for it_num in range(1000):
     a_mpc = 0
     a_idm = 0
     x_state = np.array([0.,0.])
+    kona_power.ModBattery.Battery_config()
+    env_reg.soc = kona_power.ModBattery.SOC
 #    for sim_step in range(len(DrivingData['Data_Time'])):
     for sim_step in range(800, 1800):
         # Road measured driving data
@@ -434,9 +436,9 @@ for it_num in range(1000):
                         ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac)
                         fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
                         fig_num = fig_num + 1
-                if np.sum(reward_array) >= -640:
-                        fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_fin.pkl')                        
-                        # agent_reg.model.save_weights("factor_onecase_best.h5")
+                if np.sum(reward_array) >= -1925:
+                        fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_mpc.pkl')                        
+                        agent_reg.model.save_weights("factor_onecase_best_mpc.h5")
                         print('!!============================== result convergen ==================================!!')
                         
             episode_num = episode_num+1

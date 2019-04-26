@@ -129,7 +129,7 @@ class EnvRegen:
         self.conf_saf_fac_cri = conf_saf_fac_cri
         self.conf_saf_dis = conf_saf_dis
 
-    def set_coef_energy(self, conf_energy_fac = 0.1):
+    def set_coef_energy(self, conf_energy_fac = 1000):
         "Set energy reward configuration"
         "reward = conf_factor * SOC variation"
         self.conf_energy_fac = conf_energy_fac
