@@ -127,7 +127,7 @@ agent_conf = {'min_data_length': 50}
 agent_reg = DdqrnAgent(model_conf['input_num'], model_conf['input_sequence_num'],  model_conf['action_dim'], model_conf['lrn_rate'])
 agent_reg.explore_dn_freq = 1000
 
-acc_set_filt = MovAvgFilt(7)
+acc_set_filt = MovAvgFilt(21)
 reg_trq_ctl = type_pid_controller()
 reg_trq_ctl.P_gain = 50
 reg_trq_ctl.I_gain = 500
@@ -141,7 +141,7 @@ swt_plot = 'on'
 sim_vehicle = type_DataLog(['time','veh_vel_measure','veh_vel_pre','veh_vel','veh_acc','acc_measure',
                             'drv_aps_in','drv_bps_in','trq_mot','w_mot','w_shaft','w_wheel','reldis_measure','trq_reg',])
 
-sim_algorithm = type_DataLog(['stDrvInt','stRegCtl','acc_set_lqr','acc_set_classic','x1','x2','x1r'])
+sim_algorithm = type_DataLog(['stDrvInt','stRegCtl','acc_set_lqr','x1','x2','x1r'])
 
 sim_idm = type_DataLog(['stBrkSection','acc_est','acc_ref','vel_est','vel_ref',
                         'reldis_est','dis_eff','dis_adj','dis_adj_delta',
@@ -179,7 +179,7 @@ file_list = ['Data_180827_Midan.mat', 'Data_181221_HighwayGyoss.mat', 'Data_1812
 #agent_reg.model.load_weights('factor_oncase.h5')
 #agent_reg.target_model.load_weights('factor_oncase.h5')
 #%%
-for it_num in range(5):
+for it_num in range(20):
     
     get_data.set_dir(os.path.abspath('.\driving_data'))
     file_name = random.sample(file_list,1)[0]
@@ -197,8 +197,8 @@ for it_num in range(5):
     a_idm = 0
     x_state = np.array([0.,0.])
     xr = np.array([0.,0.])
-    # for sim_step in range(len(DrivingData['Data_Time'])):
-    for sim_step in range(0, 10000):
+    for sim_step in range(len(DrivingData['Data_Time'])):
+#    for sim_step in range(0, 10000):
         # Road measured driving data
         sim_time = DrivingData['Data_Time'][sim_step]
         acc_veh_measure_step = DrivingData['DataVeh_Acc'][sim_step]
@@ -226,8 +226,7 @@ for it_num in range(5):
         if model_cnt%10 == 0:
             idm_kh.stBrkState = idm_kh.state_def(idm_kh.mod_profile, idm_kh.stBrkState, stDrvInt, driving_data, pre_vel)
             idm_kh.mod_profile = idm_kh.profile_update(idm_kh.stBrkState, idm_kh.mod_profile, pre_vel)
-            acc_from_classic, dis_eff = idm_cls.get_acc_set(driving_data)
-            
+                        
         # Control
         if stRegCtl == 'reg on':            
             ''' =================== Regen control algorithm ===================='''
@@ -329,6 +328,8 @@ for it_num in range(5):
             if res.info.status != 'solved':
                 # raise ValueError('OSQP did not solve the problem!')
                 a_mpc = a_mpc
+            elif np.isnan(a_mpc_solve):
+                a_mpc = a_mpc                
             else:
                 a_mpc = a_mpc_solve
                 
@@ -340,13 +341,12 @@ for it_num in range(5):
                 action_index = agent_reg.get_action(state_in_sqs)
             co_factor = co_factor_set[action_index]
             
-            # acc_set = co_factor*a_mpc + (1-co_factor)*a_idm
-            acc_set = a_idm
+            acc_set = co_factor*a_mpc + (1-co_factor)*a_idm
             acc_set = acc_set_filt.filt(acc_set)
             
             trqRegSet = reg_trq_ctl.Control(control_result['acc'], acc_set)
                         
-            
+            trqRegSet = sorted(([0,trqRegSet,400]))[1]
             # ===== Vehicle driven
             kona_vehicle.t_mot_reg_set = trqRegSet
             drv_aps = 0
@@ -447,7 +447,7 @@ for it_num in range(5):
                                kona_vehicle.vel_veh, kona_vehicle.veh_acc, acc_veh_measure_step,
                                driver_aps_in_step, driver_bps_in_step, kona_power.t_mot, kona_power.w_mot, 
                                kona_drivetrain.w_shaft, kona_drivetrain.w_wheel, rel_dis, kona_vehicle.t_mot_reg_set])
-        sim_algorithm.StoreData([stDrvInt, stRegCtl,a_mpc,acc_from_classic, x_state[0], x_state[1], xr[0]])
+        sim_algorithm.StoreData([stDrvInt, stRegCtl,a_mpc, x_state[0], x_state[1], xr[0]])
         sim_idm.StoreData([idm_kh.stBrkState, idm_kh.mod_profile['acc'], idm_kh.mod_profile['acc_ref'], 
                            idm_kh.mod_profile['vel'], idm_kh.mod_profile['vel_ref'], idm_kh.mod_profile['reldis'], 
                            idm_kh.mod_profile['dis_eff'], idm_kh.param_active['DisAdj'], idm_kh.param_active['DisAdjDelta'],
