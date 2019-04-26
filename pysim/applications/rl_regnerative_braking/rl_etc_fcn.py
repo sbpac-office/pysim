@@ -73,12 +73,12 @@ def fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num):
     ax[7].set_title('reward')
     ax[7].legend()
 
-    # ax[2].clear(); ax[2].imshow(q_array, cmap = 'Blues', aspect = 'auto'); ax[2].set_title('log(action prob)')    
-    ax[2].clear()
-    ax[2].plot(data_ctl['x_1'],alpha = 0.7,label = 'x_rel_dis')
-    ax[2].plot(data_ctl['x_2'],alpha = 0.7,label = 'x_rel_vel')
-    ax[2].plot(data_ctl['x_1_r'],alpha = 0.7,label = 'x_rel_dis_des')
-    ax[2].legend()
+    ax[2].clear(); ax[2].imshow(q_array, cmap = 'Blues', aspect = 'auto'); ax[2].set_title('log(action prob)')    
+    # ax[2].clear()
+    # ax[2].plot(data_ctl['x_1'],alpha = 0.7,label = 'x_rel_dis')
+    # ax[2].plot(data_ctl['x_2'],alpha = 0.7,label = 'x_rel_vel')
+    # ax[2].plot(data_ctl['x_1_r'],alpha = 0.7,label = 'x_rel_dis_des')
+    # ax[2].legend()
     ax[8].scatter(fig_num, reward_sum, s = 2, alpha = 0.7)
     
     plt.pause(0.05)
@@ -152,6 +152,39 @@ def lqr(A,B,Q,R):
      
     return K_lqr, X, eigVals
 
+def fcn_driving_data_arrange(driving_data_raw):
+    DrivingData = {}
+    list_vars = driving_data_raw.dtype.names
+    for i in range(len(list_vars)):
+        DrivingData[list_vars[i]] = driving_data_raw[list_vars[i]][0,0]
+    DrivingData['DataVeh_VelPre'] = DrivingData['DataVeh_Vel'] + DrivingData['DataRad_RelVel']
+    return DrivingData
 
 
+def fcn_epdata_arrange(ep_data, model, dis_fac, model_conf):    
+    data_length = len(ep_data)
+    state_in_size = data_length - model_conf['input_sequence_num']
+    input_state = np.zeros((state_in_size, model_conf['input_sequence_num'], model_conf['input_num']))
+    q_array = np.zeros((state_in_size, model_conf['action_dim']))
+    q_max_array = np.zeros((state_in_size))
+    action_index_array = np.zeros((state_in_size))
+    reward_array = np.zeros((state_in_size))
+    q_from_reward = np.zeros((state_in_size))
     
+            
+    for i in range(state_in_size):
+        ep_data_seq_set = ep_data[i:i+model_conf['input_sequence_num']]
+        for j in range(model_conf['input_sequence_num']):
+            input_state[i,j,:] = ep_data_seq_set[j][0]
+        input_state_dim = np.expand_dims(input_state[i],axis = 0)
+        q_array[i,:] = model.predict(input_state_dim)
+        q_max_array[i] = np.max(q_array[i,:])
+        action_index_array[i] = np.argmax(q_array[i,:])
+        reward_array[i] = ep_data[i+model_conf['input_sequence_num']-1][2]
+    
+    sum_val = 0        
+    for step_index in reversed(range(0, state_in_size)):
+        sum_val = sum_val * dis_fac + reward_array[step_index]
+        q_from_reward[step_index] = sum_val
+        
+    return input_state, q_array, q_max_array, action_index_array, reward_array, q_from_reward

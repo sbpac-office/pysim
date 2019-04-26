@@ -48,7 +48,7 @@ from keras.models import Sequential, load_model
 colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS) 
 app_dir = os.path.abspath('')
 os.chdir('..\..\..')
-from pysim.models.model_power import Mod_Power
+from pysim.models.model_power import Mod_Power, Mod_Battery, Mod_Motor
 from pysim.models.model_vehicle import Mod_Body, Mod_Veh
 from pysim.models.model_environment import Mod_Env
 from pysim.models.model_maneuver import Mod_Driver, Mod_Behavior
@@ -200,8 +200,7 @@ for driver_case in range(3):
     reg_trq_ctl.P_gain = 50
     reg_trq_ctl.I_gain = 500
     # Env
-    env_reg = EnvRegen(kona_power.ModBattery.SOC)
-    
+    env_reg = EnvRegen(kona_power.ModBattery.SOC)  
     " Load model"
     if driver_case == 0:
         agent_reg.model.load_weights('driving_case_driver_0.h5')
@@ -251,8 +250,6 @@ for driver_case in range(3):
     episode_num = 0
     fig_num = 0
     
-    
-    
     #agent_reg.model.load_weights('factor_oncase.h5')
     #agent_reg.target_model.load_weights('factor_oncase.h5')
     #%%
@@ -299,8 +296,7 @@ for driver_case in range(3):
             if model_cnt%10 == 0:
                 idm_kh.stBrkState = idm_kh.state_def(idm_kh.mod_profile, idm_kh.stBrkState, stDrvInt, driving_data, pre_vel)
                 idm_kh.mod_profile = idm_kh.profile_update(idm_kh.stBrkState, idm_kh.mod_profile, pre_vel)
-                acc_from_classic, dis_eff = idm_cls.get_acc_set(driving_data)
-            
+                acc_from_classic, dis_eff = idm_cls.get_acc_set(driving_data)            
                 
             # Control
             if stRegCtl == 'reg on':            

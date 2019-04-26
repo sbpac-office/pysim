@@ -475,7 +475,7 @@ for driver_case in range(3):
         
         
     filename = 'driving_case_driver_%d_figure.pkl' % driver_case    
-    fcn_log_data_store([sim_vehicle, sim_algorithm, sim_idm, reward_sum_array, q_array], filename)    
+    fcn_log_data_store([sim_vehicle, sim_algorithm, sim_idm, reward_sum_array, q_array], filename)
     print('!!============================== driving termination ==================================!!')
     # Set preceding vehicle
 #%% 3. Result plot       

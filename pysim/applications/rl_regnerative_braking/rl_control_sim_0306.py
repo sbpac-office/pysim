@@ -37,7 +37,7 @@ from keras.models import Sequential, load_model
 colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS) 
 app_dir = os.path.abspath('')
 os.chdir('..\..\..')
-from pysim.models.model_power import Mod_Power, Mod_Battery, Mod_Motor
+from pysim.models.model_power import Mod_Power
 from pysim.models.model_vehicle import Mod_Body, Mod_Veh
 from pysim.models.model_environment import Mod_Env
 from pysim.models.model_maneuver import Mod_Driver, Mod_Behavior
@@ -387,8 +387,8 @@ for it_num in range(30000):
                         fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
                         fig_num = fig_num + 1
                 if np.sum(reward_array) >= -640:
-                        fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_fin.pkl')                        
-                        agent_reg.model.save_weights("factor_onecase_best.h5")
+                        # fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_fin.pkl')                        
+                        # agent_reg.model.save_weights("factor_onecase_best.h5")
                         print('!!============================== result convergen ==================================!!')
                         
             episode_num = episode_num+1
