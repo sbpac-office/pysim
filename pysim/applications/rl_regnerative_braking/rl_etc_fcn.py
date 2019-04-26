@@ -58,8 +58,9 @@ def fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num):
     
     ax[5].clear(); 
     ax[5].plot(data_drv['vel'], lw = 2, color = 'black',alpha = 0.7, label = 'driving')
-    ax[5].plot(data_mod['vel'], alpha = 0.3, label = 'model'); 
+    # ax[5].plot(data_mod['vel'], alpha = 0.3, label = 'model'); 
     ax[5].plot(data_ctl['vel'], alpha = 0.3, label = 'control'); 
+    ax[5].plot(data_drv['prevel'], alpha = 0.3, label = 'pre vel'); 
     ax[5].set_title('vel')
     
     ax[1].clear(); ax[1].plot(q_array, alpha = 0.7); ax[1].set_title('q array from model'); ax[1].legend()
@@ -73,13 +74,15 @@ def fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num):
     ax[7].set_title('reward')
     ax[7].legend()
 
-    ax[2].clear(); ax[2].imshow(q_array, cmap = 'Blues', aspect = 'auto'); ax[2].set_title('log(action prob)')    
-    # ax[2].clear()
-    # ax[2].plot(data_ctl['x_1'],alpha = 0.7,label = 'x_rel_dis')
-    # ax[2].plot(data_ctl['x_2'],alpha = 0.7,label = 'x_rel_vel')
-    # ax[2].plot(data_ctl['x_1_r'],alpha = 0.7,label = 'x_rel_dis_des')
-    # ax[2].legend()
-    ax[8].scatter(fig_num, reward_sum, s = 2, alpha = 0.7)
+    # ax[2].clear(); ax[2].imshow(q_array, cmap = 'Blues', aspect = 'auto'); ax[2].set_title('log(action prob)')    
+    ax[2].clear()
+    ax[2].plot(np.array(data_ctl['x_1_r']) - np.array(data_ctl['x_1']),alpha = 0.7,label = 'x_1_err')
+    ax[2].plot(data_ctl['x_2'],alpha = 0.7,label = 'x_2_err')    
+    ax[2].legend()
+    # ax[8].scatter(fig_num, reward_sum, s = 2, alpha = 0.7)
+    ax[8].clear()
+    ax[8].plot(data_drv['reldis'], lw = 2, color = 'black',alpha = 0.7, label = 'driving')
+    ax[8].plot(data_ctl['reldis'], alpha = 0.3, label = 'control')
     
     plt.pause(0.05)
     

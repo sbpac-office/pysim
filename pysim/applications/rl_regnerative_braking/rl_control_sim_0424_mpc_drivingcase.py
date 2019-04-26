@@ -56,7 +56,7 @@ from rl_environment import EnvRegen
 from rl_algorithm import DdqrnAgent
 from rl_etc_fcn import MovAvgFilt, fcn_plot_lrn_result, fcn_set_vehicle_param, fcn_log_data_store, fcn_driving_data_arrange, fcn_epdata_arrange
 #%% import driving data
-
+plt.close('all')
 get_data.set_dir(os.path.abspath('.\driver_data'))
 DriverData = get_data.load_mat('LrnVecCf.mat')
 
@@ -122,12 +122,13 @@ K.clear_session()
 
 
 model_conf = {'input_num': 8, 'input_sequence_num': 8, 'action_dim': 6, 'lrn_rate': 0.001}
-agent_conf = {'min_data_length': 50}
+agent_conf = {'min_data_length': 200}
 
 agent_reg = DdqrnAgent(model_conf['input_num'], model_conf['input_sequence_num'],  model_conf['action_dim'], model_conf['lrn_rate'])
 agent_reg.explore_dn_freq = 1000
 
 acc_set_filt = MovAvgFilt(21)
+trq_set_filt = MovAvgFilt(21)
 reg_trq_ctl = type_pid_controller()
 reg_trq_ctl.P_gain = 50
 reg_trq_ctl.I_gain = 500
@@ -179,10 +180,11 @@ file_list = ['Data_180827_Midan.mat', 'Data_181221_HighwayGyoss.mat', 'Data_1812
 #agent_reg.model.load_weights('factor_oncase.h5')
 #agent_reg.target_model.load_weights('factor_oncase.h5')
 #%%
-for it_num in range(20):
+for it_num in range(100):
     
     get_data.set_dir(os.path.abspath('.\driving_data'))
-    file_name = random.sample(file_list,1)[0]
+    # file_name = random.sample(file_list,1)[0]
+    file_name = 'Data_181221_HighwayGyoss.mat'
     DrivingData_Tg = get_data.load_mat(file_name)
     DrivingData = fcn_driving_data_arrange(DrivingData_Tg['DrvDataKH_Case1'])
     
@@ -198,7 +200,8 @@ for it_num in range(20):
     x_state = np.array([0.,0.])
     xr = np.array([0.,0.])
     for sim_step in range(len(DrivingData['Data_Time'])):
-#    for sim_step in range(0, 10000):
+            
+    # for sim_step in range(800, 1800):
         # Road measured driving data
         sim_time = DrivingData['Data_Time'][sim_step]
         acc_veh_measure_step = DrivingData['DataVeh_Acc'][sim_step]
@@ -208,10 +211,10 @@ for it_num in range(20):
         driver_bps_in_step = DrivingData['DataDrv_Brk'][sim_step]
         rel_dis_step = DrivingData['DataRad_RelDis'][sim_step]
         motor_torque_step = DrivingData['DataVeh_MotTorque'][sim_step]
-        motor_rotspd_step = DrivingData['DataVeh_MotRotSpeed'][sim_step]
+        motor_rotspd_step = DrivingData['DataVeh_MotRotSpeed'][sim_step]        
         # Transition state
         stDrvInt = cf_state_recog.pedal_transition_machine(driver_aps_in_step, driver_bps_in_step)
-        stRegCtl = cf_state_recog.regen_control_machine(stDrvInt, rel_dis_step, vel_veh_measure_step)
+        stRegCtl = cf_state_recog.regen_control_machine(stDrvInt, rel_dis_step, vel_preveh_measure_step - vel_veh_measure_step, vel_veh_measure_step)
         
         # Vehicle data for initial lization
         driving_data = {'acc':acc_veh_measure_step, 'vel':vel_veh_measure_step, 'reldis': rel_dis_step, 'prevel': vel_preveh_measure_step}
@@ -256,6 +259,9 @@ for it_num in range(20):
                 x_state = np.array([control_result['reldis'], control_result['relvel']])[:,0]
                 kona_power.ModBattery.Battery_config()
                 env_reg.soc = kona_power.ModBattery.SOC
+                
+                reg_trq_ctl.I_val_old = 0;
+                reg_trq_ctl.I_val = 0;
             else:
                 rel_dis_pre = rel_dis
                 cnt_episode = cnt_episode + 1
@@ -343,10 +349,12 @@ for it_num in range(20):
             
             acc_set = co_factor*a_mpc + (1-co_factor)*a_idm
             acc_set = acc_set_filt.filt(acc_set)
+            acc_set = sorted((-7, acc_set, 0))[1]
             
             trqRegSet = reg_trq_ctl.Control(control_result['acc'], acc_set)
-                        
-            trqRegSet = sorted(([0,trqRegSet,400]))[1]
+            trqRegSet = trq_set_filt.filt(trqRegSet)            
+            trqRegSet = sorted(([-50,trqRegSet,400]))[1]
+            
             # ===== Vehicle driven
             kona_vehicle.t_mot_reg_set = trqRegSet
             drv_aps = 0
@@ -378,7 +386,7 @@ for it_num in range(20):
             
             sim_rl_ctl.StoreData([control_result['acc'], control_result['accref'], control_result['reldis'],
                                   control_result['relvel'],control_result['vel'], trqRegSet, kona_power.ModBattery.SOC, acc_set, a_idm, a_mpc, x_state[0], x_state[1],xr[0]])
-            rel_dis_array.append(rel_dis_step)
+            rel_dis_array = sim_rl_drv.DataProfile['reldis']
         else:        
             flagRegCtlInit = 0
             # Set vehicle state to measurement data
@@ -392,7 +400,7 @@ for it_num in range(20):
             kona_drivetrain.w_vehicle = vel_veh_measure_step/kona_vehicle.conf_rd_wheel
             kona_drivetrain.w_wheel = motor_rotspd_step/kona_drivetrain.conf_gear        
             drv_aps = 0
-            drv_bps = 0               
+            drv_bps = 0
         
         if stDrvInt == 'acc on':
             # Episode done
@@ -413,7 +421,7 @@ for it_num in range(20):
                 agent_reg.memory.add_episode_buffer()
                 reward_sum_array.append(np.sum(reward_array))
                 reward_mean_array.append(np.mean(reward_array))
-                if (episode_num-1)%20 == 0:
+                if (episode_num-1)%1 == 0:
                         logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
                         ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac, model_conf)
                         fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)

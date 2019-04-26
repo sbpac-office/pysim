@@ -72,9 +72,9 @@ class DecelStateRecog:
     #     self.stRegCtl = stRegCtl
     #     return stRegCtl
         
-    def regen_control_machine(self, stDrvPedalTrns, rel_dis, veh_vel):
+    def regen_control_machine(self, stDrvPedalTrns, rel_dis, rel_vel,veh_vel):
         stRegCtl = self.stRegCtl
-        if (stDrvPedalTrns == 'acc off') and (stRegCtl == 'driving') and (rel_dis <= 150):
+        if (stDrvPedalTrns == 'acc off') and (stRegCtl == 'driving') and (rel_dis <= 150) and (rel_vel <= 0):
             stRegCtl = 'reg on'
         elif (stRegCtl == 'reg on') and ((stDrvPedalTrns == 'acc on') or (veh_vel < 0.5)):
             stRegCtl = 'driving'            
