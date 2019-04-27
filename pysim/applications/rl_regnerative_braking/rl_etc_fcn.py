@@ -161,6 +161,7 @@ def fcn_driving_data_arrange(driving_data_raw):
     for i in range(len(list_vars)):
         DrivingData[list_vars[i]] = driving_data_raw[list_vars[i]][0,0]
     DrivingData['DataVeh_VelPre'] = DrivingData['DataVeh_Vel'] + DrivingData['DataRad_RelVel']
+    DrivingData['DataVeh_VelPre'][DrivingData['DataVeh_VelPre'][:,0]<0] = 0    
     return DrivingData
 
 

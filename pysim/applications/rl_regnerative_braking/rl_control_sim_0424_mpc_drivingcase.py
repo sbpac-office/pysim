@@ -180,11 +180,11 @@ file_list = ['Data_180827_Midan.mat', 'Data_181221_HighwayGyoss.mat', 'Data_1812
 #agent_reg.model.load_weights('factor_oncase.h5')
 #agent_reg.target_model.load_weights('factor_oncase.h5')
 #%%
-for it_num in range(100):
+for it_num in range(1):
     
     get_data.set_dir(os.path.abspath('.\driving_data'))
     # file_name = random.sample(file_list,1)[0]
-    file_name = 'Data_181221_HighwayGyoss.mat'
+    file_name = 'Data_181221_UrbanToegye.mat'
     DrivingData_Tg = get_data.load_mat(file_name)
     DrivingData = fcn_driving_data_arrange(DrivingData_Tg['DrvDataKH_Case1'])
     
@@ -199,9 +199,9 @@ for it_num in range(100):
     a_idm = 0
     x_state = np.array([0.,0.])
     xr = np.array([0.,0.])
-    for sim_step in range(len(DrivingData['Data_Time'])):
+    # for sim_step in range(len(DrivingData['Data_Time'])):
             
-    # for sim_step in range(800, 1800):
+    for sim_step in range(205000, 210000):
         # Road measured driving data
         sim_time = DrivingData['Data_Time'][sim_step]
         acc_veh_measure_step = DrivingData['DataVeh_Acc'][sim_step]
@@ -285,8 +285,14 @@ for it_num in range(100):
             "Regen control based on rl agent"
             
             "Driver model based acc planning"
-            a_idm = idm_kh.mod_profile['acc']
+            a_idm_mod = idm_kh.mod_profile['acc']
+            if np.isnan(a_idm):
+                a_idm = a_idm
+                print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                break
             
+            else:
+                a_idm = a_idm_mod
             "MPC control"
             vel_pre_step = control_result['prevel']
             rel_dis_step = control_result['reldis']
@@ -416,7 +422,7 @@ for it_num in range(100):
                 agent_reg.memory.episode_experience = []
             elif (np.array(rel_dis_array) >= 100).any():
                 print('##object loss')
-                agent_reg.memory.episode_experience = []    
+                agent_reg.memory.episode_experience = []
             else:
                 agent_reg.memory.add_episode_buffer()
                 reward_sum_array.append(np.sum(reward_array))
@@ -503,7 +509,7 @@ if swt_plot == 'on':
     ax1.plot(sim_vehicle.DataProfile['time'], sim_idm.DataProfile['stBrkSection'], label='brake section')
     ax2.plot(sim_vehicle.DataProfile['time'], sim_vehicle.DataProfile['veh_acc'], label='acc vehicle')
     ax2.plot(sim_vehicle.DataProfile['time'], sim_idm.DataProfile['acc_est'], label='acc model')
-    ax2.plot(sim_vehicle.DataProfile['time'], sim_vehicle.DataProfile['acc_measure'], label='acc measure')
+    ax2.plot(sim_vehicle.DataProfile['time'], sim_vehicle.DataProfile['acc_measure'], label='acc measure',ls = '--')
     ax2.plot(sim_vehicle.DataProfile['time'], sim_algorithm.DataProfile['acc_set_lqr'], label='acc set from mpc')
     ax2.legend()
     ax2.set_ylim(-4, 4)
@@ -533,56 +539,56 @@ if swt_plot == 'on':
     ax2.plot(sim_rl.DataProfile['rv_drv'], label = 'rv driving')
     ax2.plot(sim_rl.DataProfile['rv_saf'], label = 'rv safety')
     ax2.legend()
-    #%%
-# K.clear_session()
-# get_data.set_dir(os.path.abspath('.\driving_data'))
-# DrivingData = get_data.load_mat('CfData1.mat')
+#     #%%
+# # K.clear_session()
+# # get_data.set_dir(os.path.abspath('.\driving_data'))
+# # DrivingData = get_data.load_mat('CfData1.mat')
 
-sim_time = DrivingData['Data_Time']
-acc_veh_measure_step = DrivingData['DataVeh_Acc']
-vel_veh_measure_step = DrivingData['DataVeh_Vel']
-vel_preveh_measure_step = DrivingData['DataVeh_VelPre']
-driver_aps_in_step = DrivingData['DataDrv_Aps']
-driver_bps_in_step = DrivingData['DataDrv_Brk']
-rel_dis_step = DrivingData['DataRad_RelDis']
-motor_torque_step = DrivingData['DataVeh_MotTorque']
-motor_rotspd_step = DrivingData['DataVeh_MotRotSpeed']
-rel_vel = vel_veh_measure_step - vel_preveh_measure_step
+# sim_time = DrivingData['Data_Time']
+# acc_veh_measure_step = DrivingData['DataVeh_Acc']
+# vel_veh_measure_step = DrivingData['DataVeh_Vel']
+# vel_preveh_measure_step = DrivingData['DataVeh_VelPre']
+# driver_aps_in_step = DrivingData['DataDrv_Aps']
+# driver_bps_in_step = DrivingData['DataDrv_Brk']
+# rel_dis_step = DrivingData['DataRad_RelDis']
+# motor_torque_step = DrivingData['DataVeh_MotTorque']
+# motor_rotspd_step = DrivingData['DataVeh_MotRotSpeed']
+# rel_vel = vel_veh_measure_step - vel_preveh_measure_step
 
-param_am = 0.63
-param_b = 1.67
-param_vref = 20
-param_delta = 4
-param_T = 2
-param_s0 = 3
+# param_am = 0.63
+# param_b = 1.67
+# param_vref = 20
+# param_delta = 4
+# param_T = 2
+# param_s0 = 3
 
-eff_dis = param_s0 + param_T*vel_veh_measure_step + vel_veh_measure_step*rel_vel/(2*np.sqrt(param_am*param_b))
+# eff_dis = param_s0 + param_T*vel_veh_measure_step + vel_veh_measure_step*rel_vel/(2*np.sqrt(param_am*param_b))
 
-acc_set = param_am * (1 - pow((vel_veh_measure_step/param_vref),param_delta) - (eff_dis/rel_dis_step)**2)
+# acc_set = param_am * (1 - pow((vel_veh_measure_step/param_vref),param_delta) - (eff_dis/rel_dis_step)**2)
 
-#     agent_reg.target_model.predict(state_in_sqs)
-plt.figure()
-plt.plot(acc_veh_measure_step)
-plt.plot(acc_set)
-plt.ylim((-4,4))
-# plt.plot(sim_idm.DataProfile['acc_est'])
-#%%
-sim_time = DrivingData['Data_Time']
-acc_veh_measure_step = DrivingData['DataVeh_Acc']
-vel_veh_measure_step = DrivingData['DataVeh_Vel']
-vel_preveh_measure_step = DrivingData['DataVeh_VelPre']
-driver_aps_in_step = DrivingData['DataDrv_Aps']
-driver_bps_in_step = DrivingData['DataDrv_Brk']
-rel_dis_step = DrivingData['DataRad_RelDis']
-motor_torque_step = DrivingData['DataVeh_MotTorque']
-motor_rotspd_step = DrivingData['DataVeh_MotRotSpeed']
-rel_vel = vel_veh_measure_step - vel_preveh_measure_step
+# #     agent_reg.target_model.predict(state_in_sqs)
+# plt.figure()
+# plt.plot(acc_veh_measure_step)
+# plt.plot(acc_set)
+# plt.ylim((-4,4))
+# # plt.plot(sim_idm.DataProfile['acc_est'])
+# #%%
+# sim_time = DrivingData['Data_Time']
+# acc_veh_measure_step = DrivingData['DataVeh_Acc']
+# vel_veh_measure_step = DrivingData['DataVeh_Vel']
+# vel_preveh_measure_step = DrivingData['DataVeh_VelPre']
+# driver_aps_in_step = DrivingData['DataDrv_Aps']
+# driver_bps_in_step = DrivingData['DataDrv_Brk']
+# rel_dis_step = DrivingData['DataRad_RelDis']
+# motor_torque_step = DrivingData['DataVeh_MotTorque']
+# motor_rotspd_step = DrivingData['DataVeh_MotRotSpeed']
+# rel_vel = vel_veh_measure_step - vel_preveh_measure_step
 
-veh_vel = vel_veh_measure_step
-x1 = vel_veh_measure_step - vel_preveh_measure_step
-x2 = rel_dis_step - 3*vel_preveh_measure_step
-a_lqr = -(K_lqr[0,0]*x1 + K_lqr[0,1]*x2)
+# veh_vel = vel_veh_measure_step
+# x1 = vel_veh_measure_step - vel_preveh_measure_step
+# x2 = rel_dis_step - 3*vel_preveh_measure_step
+# a_lqr = -(K_lqr[0,0]*x1 + K_lqr[0,1]*x2)
 
-plt.figure()
-plt.plot(acc_veh_measure_step)
-plt.plot(a_lqr)
+# plt.figure()
+# plt.plot(acc_veh_measure_step)
+# plt.plot(a_lqr)
