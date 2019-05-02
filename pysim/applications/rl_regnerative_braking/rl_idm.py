@@ -291,10 +291,12 @@ class IdmAccCf:
             dis_eff_next = reldis* pow(self.param_active['DisAdj']+1,0.5)
         elif stBrkState == 'Term':
             # acc_ref_next = self.fcn_acc_ref_calc_term(vel, preveh_vel, reldis)
-            vel_ref_next = vel/pow(-1*self.param_active['AccTerm']/self.param_active['AccMax'], 0.25)
+            tmpAccTerm = sorted((0.00000000001,-1*self.param_active['AccTerm']/self.param_active['AccMax'],np.inf))[1]
+            vel_ref_next = vel/pow(tmpAccTerm, 0.25)
             self.param_active['DisAdjDelta'] = (acc - acc_ref)*self.param_active['GainTerm']/self.param_active['AccMax']
             self.param_active['DisAdj'] = self.param_active['DisAdj'] + self.param_active['DisAdjDelta']
-            dis_eff_next = reldis* pow(self.param_active['DisAdj']+1,0.5)
+            tmpDisTerm = sorted((0.0000000001,self.param_active['DisAdj']+1,np.inf))[1]
+            dis_eff_next = reldis* pow(tmpDisTerm,0.5)
         else:
             acc_ref_next = 0
             vel_ref_next = vel
@@ -307,8 +309,12 @@ class IdmAccCf:
     
     def acc_update(self, mod_profile, preveh_vel):        
         [acc, acc_ref, vel, vel_ref, reldis, dis_eff] = self.fcn_mod_profile_set(mod_profile)
+        tmpVelTerm = sorted((0.00000001, vel/vel_ref, np.inf))[1]
+        tmpDisTerm = sorted((0.00000001, dis_eff/reldis, np.inf))[1]        
+        acc_next = self.param_active['AccMax']*(1 - pow(tmpVelTerm, 4) - pow(tmpDisTerm, 2))
+        
+        acc_next = sorted((-5,acc_next,0))[1]
                 
-        acc_next = self.param_active['AccMax']*(1 - pow((vel/vel_ref), 4) - pow((dis_eff/reldis), 2))
         vel_next = vel + acc_next*0.1
         relvel_next = preveh_vel - vel_next
         reldis_next = sorted((0.5, reldis + relvel_next*0.1, 100))[1]

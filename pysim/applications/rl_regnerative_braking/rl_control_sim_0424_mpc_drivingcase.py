@@ -37,7 +37,7 @@ from keras.models import Sequential, load_model
 import scipy as sp
 import scipy.sparse as sparse
 import osqp
-
+import time
 
 colors = dict(mcolors.BASE_COLORS, **mcolors.CSS4_COLORS) 
 app_dir = os.path.abspath('')
@@ -125,7 +125,7 @@ model_conf = {'input_num': 8, 'input_sequence_num': 8, 'action_dim': 6, 'lrn_rat
 agent_conf = {'min_data_length': 200}
 
 agent_reg = DdqrnAgent(model_conf['input_num'], model_conf['input_sequence_num'],  model_conf['action_dim'], model_conf['lrn_rate'])
-agent_reg.explore_dn_freq = 1000
+agent_reg.explore_dn_freq = 100
 
 acc_set_filt = MovAvgFilt(21)
 trq_set_filt = MovAvgFilt(21)
@@ -180,28 +180,32 @@ file_list = ['Data_180827_Midan.mat', 'Data_181221_HighwayGyoss.mat', 'Data_1812
 #agent_reg.model.load_weights('factor_oncase.h5')
 #agent_reg.target_model.load_weights('factor_oncase.h5')
 #%%
+list_file_name = []
+list_reward_mean = {}
+
+st_time = time.time()
 for it_num in range(1):
     
     get_data.set_dir(os.path.abspath('.\driving_data'))
-    # file_name = random.sample(file_list,1)[0]
-    file_name = 'Data_181221_UrbanToegye.mat'
+#    file_name = random.sample(file_list,1)[0]
+    file_name = 'Data_180827_Midan.mat'
     DrivingData_Tg = get_data.load_mat(file_name)
-    DrivingData = fcn_driving_data_arrange(DrivingData_Tg['DrvDataKH_Case1'])
+    DrivingData = fcn_driving_data_arrange(DrivingData_Tg['DrvDataYK_Case1'])
     
-    # for sim_step in range(len(DrivingData['Data_Time'])):
     sim_vehicle.set_reset_log()
     sim_algorithm.set_reset_log()
     sim_idm.set_reset_log()   
     
-    array_reward = []
+    list_reward_mean[file_name] = []
+    list_file_name.append(file_name)
     array_action = []
     a_mpc = 0
     a_idm = 0
     x_state = np.array([0.,0.])
     xr = np.array([0.,0.])
-    # for sim_step in range(len(DrivingData['Data_Time'])):
+#    for sim_step in range(len(DrivingData['Data_Time'])):
             
-    for sim_step in range(205000, 210000):
+    for sim_step in range(0, 10000):
         # Road measured driving data
         sim_time = DrivingData['Data_Time'][sim_step]
         acc_veh_measure_step = DrivingData['DataVeh_Acc'][sim_step]
@@ -327,7 +331,7 @@ for it_num in range(1):
             prob = osqp.OSQP()
             
             # Setup workspace
-            prob.setup(P, q, A, l, u, warm_start=True)
+            prob.setup(P, q, A, l, u, warm_start=True, verbose=False)
             
             # Solve
             res = prob.solve()
@@ -343,7 +347,7 @@ for it_num in range(1):
             elif np.isnan(a_mpc_solve):
                 a_mpc = a_mpc                
             else:
-                a_mpc = a_mpc_solve
+                a_mpc = sorted((-7, a_mpc_solve, 0))[1]
                 
             "Determine equilibrium factor from rl"
                             
@@ -423,15 +427,19 @@ for it_num in range(1):
             elif (np.array(rel_dis_array) >= 100).any():
                 print('##object loss')
                 agent_reg.memory.episode_experience = []
-            else:
+            elif (np.array(sim_rl_drv.DataProfile['acc']) <= -1).any():
                 agent_reg.memory.add_episode_buffer()
                 reward_sum_array.append(np.sum(reward_array))
                 reward_mean_array.append(np.mean(reward_array))
+                list_reward_mean[file_name].append(np.mean(reward_array))
                 if (episode_num-1)%1 == 0:
                         logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
                         ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac, model_conf)
                         fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
-                        fig_num = fig_num + 1
+                        fig_num = fig_num + 1                        
+            else:
+                print('##only cost')
+                agent_reg.memory.episode_experience = []
                 # if np.sum(reward_array) >= -640:
                 #         # fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_fin.pkl')                        
                 #         # agent_reg.model.save_weights("factor_onecase_best.h5")
@@ -466,11 +474,12 @@ for it_num in range(1):
                            idm_kh.mod_profile['vel'], idm_kh.mod_profile['vel_ref'], idm_kh.mod_profile['reldis'], 
                            idm_kh.mod_profile['dis_eff'], idm_kh.param_active['DisAdj'], idm_kh.param_active['DisAdjDelta'],
                            idm_kh.param_active['RelDisInit'], idm_kh.param_active['RelDisInit'], idm_kh.flag_idm_run])
-    filename = 'driving_case_driver_it%d_%s.pkl' % (it_num, file_name)
-    fcn_log_data_store([sim_vehicle, sim_algorithm, sim_idm, reward_sum_array, reward_mean_array], filename)
+#    filename = 'driving_case_driveryk_it%d_%s.pkl' % (it_num, file_name)
+#    fcn_log_data_store([sim_vehicle, sim_algorithm, sim_idm, reward_sum_array, reward_mean_array], filename)
     print('!!============================== driving episode termination ==================================!!')
 
-agent_reg.model.save_weights("factor_drivingcase_result_kh.h5")
+#agent_reg.model.save_weights("factor_drivingcase_result_yk.h5")
+print(time.time()-st_time)
     # Set preceding vehicle
 #%% 3. Result plot       
 if swt_plot == 'on':    
@@ -519,7 +528,7 @@ if swt_plot == 'on':
     ax3.legend()
     ax4.plot(sim_vehicle.DataProfile['time'], sim_idm.DataProfile['reldis_est'], label='reldis est')
     ax4.plot(sim_vehicle.DataProfile['time'], sim_vehicle.DataProfile['reldis_measure'], label='reldis')
-    ax4.set_ylim(0,50)
+#    ax4.set_ylim(0,50)
     ax4.legend()
     ax5.plot(sim_vehicle.DataProfile['time'], sim_algorithm.DataProfile['x1'], label='x1')
     ax5.plot(sim_vehicle.DataProfile['time'], sim_algorithm.DataProfile['x2'], label='x2')    
