@@ -103,6 +103,21 @@ class MovAvgFilt:
     def reset_filt(self,):
         self.filt_bump = np.zeros(self.filt_num)
 
+class TimeConstFilt:
+    
+    def __init__(self, filt_tau, ts):
+        self.filt_coeff = filt_tau/(filt_tau+ts)
+        self.pre_val = 0
+    
+    def filt(self, current_data):
+        self.filt_val = self.pre_val + (1-self.filt_coeff)*(current_data - self.pre_val)        
+        filt_data = self.filt_val
+        self.pre_val = self.filt_val
+        return filt_data
+    
+    def reset_filt(self,):
+        self.pre_val = 0
+        
 def fcn_log_data_store(data, filename):
 #    filename = 'one_case_result.pkl'
     with open(filename, 'wb') as output:
@@ -164,7 +179,6 @@ def fcn_driving_data_arrange(driving_data_raw):
     DrivingData['DataVeh_VelPre'][DrivingData['DataVeh_VelPre'][:,0]<0] = 0    
     return DrivingData
 
-
 def fcn_epdata_arrange(ep_data, model, dis_fac, model_conf):    
     data_length = len(ep_data)
     state_in_size = data_length - model_conf['input_sequence_num']
@@ -174,8 +188,7 @@ def fcn_epdata_arrange(ep_data, model, dis_fac, model_conf):
     action_index_array = np.zeros((state_in_size))
     reward_array = np.zeros((state_in_size))
     q_from_reward = np.zeros((state_in_size))
-    
-            
+                
     for i in range(state_in_size):
         ep_data_seq_set = ep_data[i:i+model_conf['input_sequence_num']]
         for j in range(model_conf['input_sequence_num']):

@@ -65,7 +65,7 @@ Ts = 0.01
 from rl_idm import IdmAccCf, DecelStateRecog, IdmClassic
 from rl_environment import EnvRegen
 from rl_algorithm import DdqrnAgent
-from rl_etc_fcn import MovAvgFilt, fcn_plot_lrn_result, fcn_set_vehicle_param, fcn_log_data_store
+from rl_etc_fcn import MovAvgFilt, fcn_plot_lrn_result, fcn_set_vehicle_param, fcn_log_data_store, TimeConstFilt
 #%%
 def fcn_epdata_arrange(ep_data, model, dis_fac):    
     data_length = len(ep_data)
@@ -156,7 +156,8 @@ agent_conf = {'min_data_length': 50}
 agent_reg = DdqrnAgent(model_conf['input_num'], model_conf['input_sequence_num'],  model_conf['action_dim'], model_conf['lrn_rate'])
 agent_reg.explore_dn_freq = 100
 
-acc_set_filt = MovAvgFilt(7)
+acc_set_filt = TimeConstFilt(0.2,0.01)
+trq_in_filt = TimeConstFilt(0.1, 0.01)
 reg_trq_ctl = type_pid_controller()
 reg_trq_ctl.P_gain = 50
 reg_trq_ctl.I_gain = 500
@@ -170,7 +171,7 @@ swt_plot = 'on'
 sim_vehicle = type_DataLog(['time','veh_vel_measure','veh_vel_pre','veh_vel','veh_acc','acc_measure',
                             'drv_aps_in','drv_bps_in','trq_mot','w_mot','w_shaft','w_wheel','reldis_measure'])
 
-sim_algorithm = type_DataLog(['stDrvInt','stRegCtl','acc_set_lqr','acc_set_classic','x1','x2'])
+sim_algorithm = type_DataLog(['stDrvInt','stRegCtl','acc_set_lqr','acc_set_classic','x1','x2','xr'])
 
 sim_idm = type_DataLog(['stBrkSection','acc_est','acc_ref','vel_est','vel_ref',
                         'reldis_est','dis_eff','dis_adj','dis_adj_delta',
@@ -178,7 +179,7 @@ sim_idm = type_DataLog(['stBrkSection','acc_est','acc_ref','vel_est','vel_ref',
     
 sim_rl = type_DataLog(['state_array','action_index','rv_sum','rv_mod','rv_drv','rv_saf','rv_eng'])
 sim_rl_mod = type_DataLog(['acc','vel','reldis','accref','dis_eff','vel_ref','time','section'])
-sim_rl_drv = type_DataLog(['acc','reldis','vel','prevel'])
+sim_rl_drv = type_DataLog(['acc','reldis','vel','prevel','time'])
 sim_rl_ctl = type_DataLog(['acc','accref','reldis','relvel','vel','trq_reg','soc','acc_set','acc_set_idm','acc_set_lqr','x_1','x_2','x_1_r'])
 
 # Set figure plot
@@ -207,7 +208,7 @@ fig_num = 0
 #agent_reg.model.load_weights('factor_oncase.h5')
 #agent_reg.target_model.load_weights('factor_oncase.h5')
 #%%
-for it_num in range(1000):
+for it_num in range(5000):
     # for sim_step in range(len(DrivingData['Data_Time'])):
     sim_vehicle.set_reset_log()
     sim_algorithm.set_reset_log()
@@ -217,11 +218,12 @@ for it_num in range(1000):
     array_action = []
     a_mpc = 0
     a_idm = 0
+    xr = np.array([0,0])
     x_state = np.array([0.,0.])
     kona_power.ModBattery.Battery_config()
     env_reg.soc = kona_power.ModBattery.SOC
 #    for sim_step in range(len(DrivingData['Data_Time'])):
-    for sim_step in range(800, 1800):
+    for sim_step in range(16800, 18000):
         # Road measured driving data
         sim_time = DrivingData['Data_Time'][sim_step]
         acc_veh_measure_step = DrivingData['DataVeh_Acc'][sim_step]
@@ -234,7 +236,7 @@ for it_num in range(1000):
         motor_rotspd_step = DrivingData['DataVeh_MotRotSpeed'][sim_step]
         # Transition state
         stDrvInt = cf_state_recog.pedal_transition_machine(driver_aps_in_step, driver_bps_in_step)
-        stRegCtl = cf_state_recog.regen_control_machine(stDrvInt, rel_dis_step)
+        stRegCtl = cf_state_recog.regen_control_machine(stDrvInt, rel_dis_step, vel_preveh_measure_step - vel_veh_measure_step, vel_veh_measure_step)
         
         # Vehicle data for initial lization
         driving_data = {'acc':acc_veh_measure_step, 'vel':vel_veh_measure_step, 'reldis': rel_dis_step, 'prevel': vel_preveh_measure_step}
@@ -336,7 +338,7 @@ for it_num in range(1000):
             prob = osqp.OSQP()
             
             # Setup workspace
-            prob.setup(P, q, A, l, u, warm_start=True)
+            prob.setup(P, q, A, l, u, warm_start=True, verbose=False)
             
             # Solve
             res = prob.solve()
@@ -359,11 +361,12 @@ for it_num in range(1000):
             else:
                 action_index = agent_reg.get_action(state_in_sqs)
             co_factor = co_factor_set[action_index]  
-            
-            acc_set = co_factor*a_mpc + (1-co_factor)*a_idm
+            co_factor = 1
+            acc_set = co_factor*a_mpc + (1-co_factor)*a_idm            
             acc_set = acc_set_filt.filt(acc_set)
             
             trqRegSet = reg_trq_ctl.Control(control_result['acc'], acc_set)
+            trqRegSet = trq_in_filt.filt(trqRegSet)
                         
             
             # ===== Vehicle driven
@@ -393,13 +396,11 @@ for it_num in range(1000):
             sim_rl_mod.StoreData([model_data['acc'],model_data['vel'],model_data['reldis'],model_data['acc_ref'],
                                   model_data['dis_eff'],model_data['vel_ref'],model_data['time'],model_data['section']])
             
-            sim_rl_drv.StoreData([driving_data['acc'], driving_data['reldis'],driving_data['vel'], pre_vel])
+            sim_rl_drv.StoreData([driving_data['acc'], driving_data['reldis'],driving_data['vel'], pre_vel,sim_time])
             
             sim_rl_ctl.StoreData([control_result['acc'], control_result['accref'], control_result['reldis'],
                                   control_result['relvel'],control_result['vel'], trqRegSet, kona_power.ModBattery.SOC, acc_set, a_idm, a_mpc, x_state[0], x_state[1],xr[0]])
             
-            
-    
         else:        
             flagRegCtlInit = 0
             # Set vehicle state to measurement data
@@ -436,10 +437,10 @@ for it_num in range(1000):
                         ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac)
                         fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
                         fig_num = fig_num + 1
-                if np.sum(reward_array) >= -1925:
-                        fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_mpc.pkl')                        
-                        agent_reg.model.save_weights("factor_onecase_best_mpc.h5")
-                        print('!!============================== result convergen ==================================!!')
+                # if np.sum(reward_array) >= -1925:
+                        # fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_mpc.pkl')                        
+                        # agent_reg.model.save_weights("factor_onecase_best_mpc.h5")
+                        # print('!!============================== result convergen ==================================!!')
                         
             episode_num = episode_num+1
 
@@ -464,7 +465,7 @@ for it_num in range(1000):
         # Data store
         sim_vehicle.StoreData([sim_time, vel_veh_measure_step, vel_preveh_measure_step, kona_vehicle.vel_veh, kona_vehicle.veh_acc, acc_veh_measure_step,
                                driver_aps_in_step, driver_bps_in_step, kona_power.t_mot, kona_power.w_mot, kona_drivetrain.w_shaft, kona_drivetrain.w_wheel, rel_dis])
-        sim_algorithm.StoreData([stDrvInt, stRegCtl,a_mpc,acc_from_classic, x_state[0], x_state[1]])
+        sim_algorithm.StoreData([stDrvInt, stRegCtl, a_mpc, acc_from_classic, x_state[0], x_state[1], xr[0]])
         sim_idm.StoreData([idm_kh.stBrkState, idm_kh.mod_profile['acc'], idm_kh.mod_profile['acc_ref'], 
                            idm_kh.mod_profile['vel'], idm_kh.mod_profile['vel_ref'], idm_kh.mod_profile['reldis'], 
                            idm_kh.mod_profile['dis_eff'], idm_kh.param_active['DisAdj'], idm_kh.param_active['DisAdjDelta'],
