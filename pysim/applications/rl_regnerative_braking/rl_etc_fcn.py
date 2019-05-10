@@ -63,7 +63,7 @@ def fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num):
     ax[5].plot(data_drv['prevel'], alpha = 0.3, label = 'pre vel'); 
     ax[5].set_title('vel')
     
-    ax[1].clear(); ax[1].plot(q_array, alpha = 0.7); ax[1].set_title('q array from model'); ax[1].legend()
+    ax[1].clear(); ax[1].plot(q_array, alpha = 0.7); ax[1].set_title('q array from model'); 
     ax[4].clear(); ax[4].plot(q_from_reward,alpha = 0.7); ax[4].set_title('q array from reward array')
     ax[1].plot(q_array_max,alpha = 0.7); ax[1].set_title('q array from model')
     ax[7].clear(); ax[7].plot(data_rl['rv_sum'], alpha = 0.7, label = 'sum')

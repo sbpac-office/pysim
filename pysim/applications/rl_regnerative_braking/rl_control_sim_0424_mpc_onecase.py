@@ -208,7 +208,10 @@ fig_num = 0
 #agent_reg.model.load_weights('factor_oncase.h5')
 #agent_reg.target_model.load_weights('factor_oncase.h5')
 #%%
-for it_num in range(5000):
+braking_flag = 0
+#for it_num in range(5000):
+while(braking_flag == 0):
+
     # for sim_step in range(len(DrivingData['Data_Time'])):
     sim_vehicle.set_reset_log()
     sim_algorithm.set_reset_log()
@@ -361,7 +364,7 @@ for it_num in range(5000):
             else:
                 action_index = agent_reg.get_action(state_in_sqs)
             co_factor = co_factor_set[action_index]  
-            co_factor = 1
+            
             acc_set = co_factor*a_mpc + (1-co_factor)*a_idm            
             acc_set = acc_set_filt.filt(acc_set)
             
@@ -433,14 +436,16 @@ for it_num in range(5000):
                 agent_reg.memory.add_episode_buffer()
                 reward_sum_array.append(np.sum(reward_array))
                 if (episode_num-1)%20 == 0:
-                        logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
-                        ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac)
-                        fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
-                        fig_num = fig_num + 1
-                # if np.sum(reward_array) >= -1925:
-                        # fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_mpc.pkl')                        
-                        # agent_reg.model.save_weights("factor_onecase_best_mpc.h5")
-                        # print('!!============================== result convergen ==================================!!')
+                    logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
+                    ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac)
+                    fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
+                    fig_num = fig_num + 1
+                if np.sum(reward_array) >= -300:
+                    fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_mpc.pkl')                        
+                    agent_reg.model.save_weights("factor_onecase_best_mpc.h5")
+                    print('!!============================== result convergen ==================================!!')
+                    braking_flag = 1
+                         
                         
             episode_num = episode_num+1
 
