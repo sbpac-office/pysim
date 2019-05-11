@@ -49,7 +49,7 @@ def fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num):
     
     ax[3].clear(); 
     ax[3].plot(data_drv['acc'], lw = 2, color = 'black',alpha = 0.7, label = 'driving')
-    ax[3].plot(data_mod['acc'], alpha = 0.3, label = 'model acc set'); 
+    ax[3].plot(data_ctl['acc_set_idm'], alpha = 0.3, label = 'model acc set'); 
     ax[3].plot(data_ctl['acc_set_lqr'], alpha = 0.3, label = 'lqr acc set'); 
     ax[3].plot(data_ctl['acc_set'], alpha = 0.3, label = 'merged acc set'); 
     ax[3].plot(data_ctl['acc'], alpha = 0.3, label = 'control result');

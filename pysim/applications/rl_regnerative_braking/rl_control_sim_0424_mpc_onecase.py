@@ -156,8 +156,10 @@ agent_conf = {'min_data_length': 50}
 agent_reg = DdqrnAgent(model_conf['input_num'], model_conf['input_sequence_num'],  model_conf['action_dim'], model_conf['lrn_rate'])
 agent_reg.explore_dn_freq = 100
 
-acc_set_filt = TimeConstFilt(0.2,0.01)
-trq_in_filt = TimeConstFilt(0.1, 0.01)
+acc_set_filt_idm = TimeConstFilt(0.1, 0.01)
+acc_set_filt_mpc = TimeConstFilt(0.1, 0.01)
+acc_set_filt = TimeConstFilt(0.05, 0.01)
+trq_in_filt = TimeConstFilt(0.05, 0.01)
 reg_trq_ctl = type_pid_controller()
 reg_trq_ctl.P_gain = 50
 reg_trq_ctl.I_gain = 500
@@ -205,12 +207,16 @@ fig_num = 0
 
 
 
-#agent_reg.model.load_weights('factor_oncase.h5')
-#agent_reg.target_model.load_weights('factor_oncase.h5')
+agent_reg.model.load_weights('factor_onecase_best_mpc.h5')
+agent_reg.target_model.load_weights('factor_onecase_best_mpc.h5')
+
+agent_reg.epsilon = 0.1
+agent_reg.explore_dn_freq = 300
+agent_reg.epsilon_term = 0.01
 #%%
 braking_flag = 0
-#for it_num in range(5000):
-while(braking_flag == 0):
+for it_num in range(1000):
+# while(braking_flag == 0):
 
     # for sim_step in range(len(DrivingData['Data_Time'])):
     sim_vehicle.set_reset_log()
@@ -277,7 +283,12 @@ while(braking_flag == 0):
                 trqRegSet = 0
                 state_in_sqs = np.zeros((1,model_conf['input_sequence_num'],model_conf['input_num']))
                 cnt_episode = 0                
-                acc_set_filt.filt(acc_veh_measure_step)
+                acc_set_filt.pre_val = acc_veh_measure_step
+
+                acc_set_filt_idm.reset_filt()
+                acc_set_filt_mpc.reset_filt()
+                trq_in_filt.reset_filt()
+
                 reward_array = []
                 
                 ttc_mod = rel_dis_step/vel_veh_measure_step                    
@@ -306,6 +317,7 @@ while(braking_flag == 0):
             
             "Driver model based acc planning"
             a_idm = idm_kh.mod_profile['acc']
+            a_idm = acc_set_filt_idm.filt(a_idm)
             
             "MPC control"
             vel_pre_step = control_result['prevel']
@@ -355,7 +367,8 @@ while(braking_flag == 0):
                 # raise ValueError('OSQP did not solve the problem!')
                 a_mpc = a_mpc
             else:
-                a_mpc = a_mpc_solve
+                a_mpc = sorted((-7,a_mpc_solve,0))[1]
+                a_mpc = acc_set_filt_mpc.filt(a_mpc)
                 
             "Determine equilibrium factor from rl"
                             
@@ -435,16 +448,17 @@ while(braking_flag == 0):
             else:
                 agent_reg.memory.add_episode_buffer()
                 reward_sum_array.append(np.sum(reward_array))
-                if (episode_num-1)%20 == 0:
+                if (episode_num-1)%1 == 0:
                     logging_data = [sim_rl, sim_rl_drv, sim_rl_mod, sim_rl_ctl]
                     ep_data_arry = fcn_epdata_arrange(ep_data,  agent_reg.model, agent_reg.dis_fac)
                     fcn_plot_lrn_result(logging_data, ep_data_arry, ax, fig_num)
                     fig_num = fig_num + 1
-                if np.sum(reward_array) >= -300:
-                    fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],'factor_onecase_bestresult_mpc.pkl')                        
-                    agent_reg.model.save_weights("factor_onecase_best_mpc.h5")
+                if np.sum(reward_array) >= -350:
+                    case_name = 'factor_onecase_bestresult_mpc_it%d.pkl' % it_num
+                    fcn_log_data_store([logging_data, ep_data_arry,reward_sum_array],case_name)                        
+                    # agent_reg.model.save_weights("factor_onecase_best_mpc.h5")
                     print('!!============================== result convergen ==================================!!')
-                    braking_flag = 1
+                    # braking_flag = 1
                          
                         
             episode_num = episode_num+1
